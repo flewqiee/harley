@@ -266,9 +266,9 @@ async function maybeShowSetup() {
       sub.textContent = 'İstediklerini bağla; kalanı sonra Bağlantılar panelinden halledebilirsin.';
       note.textContent = 'Bağlanmayan servisler Harley\'yi engellemez.';
       items.innerHTML =
-        chip('GitHub (proje / repo)', !!(conn.github)) +
-        chip('Google (Takvim / Gmail / Drive)', !!(conn.google || st.google)) +
-        chip('Spotify', !!(conn.spotify || st.spotify)) +
+        chip('GitHub — repo, commit & push, issue', !!(conn.github)) +
+        chip('Google — Takvim / Gmail / Drive / Görevler', !!(conn.google || st.google)) +
+        chip('Spotify — komutla müzik başlatma', !!(conn.spotify || st.spotify)) +
         '<button class="sw-btn" id="sw-open-conn">Bağlantılar panelini aç</button>';
       actions.innerHTML = btn('Geri') + btn('Bitir', 'primary');
     } else {

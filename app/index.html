@@ -699,10 +699,11 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
         <h2>Bağlantılar</h2>
         <button id="connections-close" title="Kapat">✕</button>
       </div>
-      <p class="settings-hint">Her servisi kendi anahtarınla bağla. Tüm bilgiler yalnızca bu bilgisayarda saklanır.</p>
+      <p class="settings-hint">Yalnızca <b>DeepSeek</b> zorunlu; diğerleri isteğe bağlıdır. Tüm bilgiler yalnızca bu bilgisayarda saklanır — istediğin zaman kaldırabilirsin.</p>
       <div class="conn-list">
         <div class="conn-card">
-          <div class="conn-top"><span class="conn-name">DeepSeek (sohbet)</span><span class="conn-status" id="conn-dot-deepseek">—</span></div>
+          <div class="conn-top"><span class="conn-name">DeepSeek (sohbet) <span class="conn-badge req">Zorunlu</span></span><span class="conn-status" id="conn-dot-deepseek">—</span></div>
+          <div class="conn-benefit"><span class="ci">i</span><span>Sohbetin beyni. Bu anahtar olmadan Harley cevap veremez.</span></div>
           <input id="conn-deepseek" type="password" placeholder="sk-..." />
           <div class="conn-actions">
             <button class="hub-quick-btn" data-conn-save="deepseek">Kaydet ve Test Et</button>
@@ -710,7 +711,8 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
           </div>
         </div>
         <div class="conn-card">
-          <div class="conn-top"><span class="conn-name">GitHub</span><span class="conn-status" id="conn-dot-github">—</span></div>
+          <div class="conn-top"><span class="conn-name">GitHub <span class="conn-badge opt">Opsiyonel</span></span><span class="conn-status" id="conn-dot-github">—</span></div>
+          <div class="conn-benefit"><span class="ci">i</span><span>Repo oluşturma/bağlama, commit &amp; push, issue'lar ve CI üretimi. Her yazma işlemi önce onayını ister.</span></div>
           <input id="conn-github" type="password" placeholder="ghp_... veya github_pat_..." />
           <div class="conn-actions">
             <button class="hub-quick-btn" data-conn-save="github">Kaydet ve Test Et</button>
@@ -718,7 +720,8 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
           </div>
         </div>
         <div class="conn-card">
-          <div class="conn-top"><span class="conn-name">Spotify</span><span class="conn-status" id="conn-dot-spotify">—</span></div>
+          <div class="conn-top"><span class="conn-name">Spotify <span class="conn-badge opt">Opsiyonel</span></span><span class="conn-status" id="conn-dot-spotify">—</span></div>
+          <div class="conn-benefit"><span class="ci">i</span><span>"Şu şarkıyı çal" diyebilmen için (arama + oynatma). Bağlamazsan üstteki çubuk yine çalanı gösterir ve oynat/durdur çalışır.</span></div>
           <input id="conn-spotify" type="text" placeholder="Spotify Client ID" />
           <div class="conn-actions">
             <button class="hub-quick-btn" data-conn-save="spotify">Kaydet</button>
@@ -728,7 +731,8 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
           <div class="conn-note">Spotify uygulamanın <b>Redirect URI</b> listesine şunu ekle: <code>http://127.0.0.1:8888/callback</code></div>
         </div>
         <div class="conn-card">
-          <div class="conn-top"><span class="conn-name">Google (Takvim / Gmail / Drive / Görevler)</span><span class="conn-status" id="conn-dot-google">—</span></div>
+          <div class="conn-top"><span class="conn-name">Google (Takvim / Gmail / Drive / Görevler) <span class="conn-badge opt">Opsiyonel</span></span><span class="conn-status" id="conn-dot-google">—</span></div>
+          <div class="conn-benefit"><span class="ci">i</span><span>Takvimini, e-postalarını, görevlerini ve Drive dosyalarını okur; "Günün Özeti" ve doğal dil komutlarını mümkün kılar.</span></div>
           <input id="conn-google-id" type="text" placeholder="Google Client ID" />
           <input id="conn-google-secret" type="password" placeholder="Google Client Secret" />
           <div class="conn-actions">

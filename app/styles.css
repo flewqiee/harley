@@ -2666,6 +2666,11 @@ button:active:not(:disabled), .hub-quick-btn:active, .bag-item:active, .session-
 .conn-name { font-size: 13px; font-weight: 600; color: var(--ink); }
 .conn-status { font-size: 11.5px; color: var(--muted); }
 .conn-status.conn-on { color: #2e7d32; font-weight: 600; }
+.conn-badge { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; letter-spacing: .02em; vertical-align: middle; margin-left: 4px; }
+.conn-badge.req { background: rgba(229,130,61,.16); color: var(--accent-deep); }
+.conn-badge.opt { background: var(--line); color: var(--muted); }
+.conn-benefit { display: flex; gap: 7px; align-items: flex-start; font-size: 11.5px; color: var(--ink-soft); line-height: 1.5; }
+.conn-benefit .ci { flex-shrink: 0; width: 15px; height: 15px; border-radius: 50%; background: var(--line); color: var(--muted); font-size: 10px; font-style: italic; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
 .conn-card input {
   width: 100%;
   box-sizing: border-box;
