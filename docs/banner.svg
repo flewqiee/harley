@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="240" viewBox="0 0 1000 240" role="img" aria-label="Harley - kişisel AI asistanı">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16100a"/>
+      <stop offset="1" stop-color="#2c1c12"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e5823d"/>
+      <stop offset="1" stop-color="#f0a868"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="240" fill="url(#bg)"/>
+  <circle cx="880" cy="60" r="150" fill="#e5823d" opacity="0.08"/>
+  <circle cx="120" cy="210" r="120" fill="#e5823d" opacity="0.06"/>
+  <text x="64" y="118" font-family="Segoe UI, Arial, sans-serif" font-size="76" font-weight="800" fill="url(#accent)">Harley</text>
+  <text x="66" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="21" fill="#e8ddd2">Windows için kişisel AI masaüstü asistanı</text>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#cbb8a6">
+    <rect x="64" y="182" rx="14" width="118" height="30" fill="#3a2a1e"/>
+    <text x="123" y="202" text-anchor="middle" fill="#f0dccb">Sohbet + kod</text>
+    <rect x="192" y="182" rx="14" width="130" height="30" fill="#3a2a1e"/>
+    <text x="257" y="202" text-anchor="middle" fill="#f0dccb">Git / GitHub</text>
+    <rect x="332" y="182" rx="14" width="150" height="30" fill="#3a2a1e"/>
+    <text x="407" y="202" text-anchor="middle" fill="#f0dccb">Google + Spotify</text>
+    <rect x="492" y="182" rx="14" width="150" height="30" fill="#3a2a1e"/>
+    <text x="567" y="202" text-anchor="middle" fill="#f0dccb">Yerel ve gizli</text>
+  </g>
+</svg>

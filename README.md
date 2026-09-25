@@ -1,5 +1,7 @@
 # Harley
 
+![Harley](docs/banner.svg)
+
 Windows için kişisel AI masaüstü asistanı. Electron ile yazıldı; sohbet doğrudan
 **DeepSeek bulut API**'sine gider. Kendi anahtarlarını bağlarsın — hepsi yalnızca
 senin bilgisayarında saklanır.
@@ -18,6 +20,12 @@ senin bilgisayarında saklanır.
 - **Ses:** Microsoft Edge neural TTS (varsayılan), yerel Piper yedeği, yerel Whisper ile sesli komut.
 - **Kişiselleştirme:** Yazma tonu, kod stili, rutin öğrenme; şifreli profil.
 - **Ekstra:** Hatırlatıcılar, pano geçmişi, hava durumu, günaydın rutini, otomatik hafıza, masaüstü karakteri.
+
+## Ekran görüntüsü
+
+![Harley arayüzü](docs/hub-mock.svg)
+
+> Yukarıdaki, ana menünün (hub) stilize bir önizlemesidir.
 
 ## Gereksinimler
 
