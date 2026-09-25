@@ -9,6 +9,16 @@ senin bilgisayarında saklanır.
 > Bu depo, Harley'nin **yeni kullanıcılar** için hazırlanmış sürümüdür. İlk açılışta
 > basit bir kurulum sihirbazı seni karşılar; dilediğin servisi bağlar, dilediğini atlarsın.
 
+## İndir (hazır .exe)
+
+**Kolay yol:** [Son sürümü indir](https://github.com/flewqiee/harley/releases/latest) →
+`Harley-<sürüm>.exe` (portable, kurulum gerektirmez) → çalıştır → sihirbazdan DeepSeek
+anahtarını gir.
+
+> Windows taşınabilir (portable) sürümdür; imzasız olduğu için Windows SmartScreen
+> uyarısı çıkabilir ("Yine de çalıştır"). Geliştirici olarak kaynaktan çalıştırmayı
+> tercih ediyorsan aşağıdaki **Kurulum** bölümüne bak.
+
 ## Özellikler
 
 - **Sohbet:** Türkçe, akışlı (streaming) yanıt, oturum geçmişi, araç çağırma (function-calling).
