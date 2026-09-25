@@ -79,6 +79,26 @@ bu bilgisayarda tutulur. Sohbetten geçmez.
 | Kişisel ayarlar & profil | `%APPDATA%\harley\` (Electron userData) |
 | Kod çalışma alanı | `%USERPROFILE%\HarleyKod\` |
 
+## Testler (yerel)
+
+```bash
+cd app
+node --test        # veya: npm test
+```
+
+**Push öncesi otomatik test:** Depoda bir `pre-push` hook'u var. Etkinleştirmek için
+(bir kez, klonladıktan sonra):
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Artık her `git push` öncesi testler çalışır; başarısızsa push engellenir.
+(bilerek atlamak için: `git push --no-verify`)
+
+**CI:** `.github/workflows/ci.yml` her push/PR'da testleri çalıştırır (GitHub Actions).
+> Not: GitHub hesabında faturalandırma kilidi varsa Actions çalışmaz — Settings → Billing.
+
 ## Derleme (paketleme)
 
 ```bash
