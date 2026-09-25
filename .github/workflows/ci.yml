@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bağımlılıklar (electron indirmeden)
+        run: npm ci --ignore-scripts
+
+      - name: Sözdizimi kontrolü
+        run: |
+          node --check main.js
+          node --check renderer.js
+          node --check preload.js
+          node --check config.js
+
+      - name: Testler
+        run: node --test
+        env:
+          CI: 'true'
