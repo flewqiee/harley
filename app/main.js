@@ -128,24 +128,21 @@ function startHidden(command, args, extraEnv) {
 let mcpChild = null;
 function startStudioMCP() {
   const entry = CFG.MCP_DIR;
-  if (fs.existsSync(entry)) {
-    try {
-      mcpChild = spawn(process.execPath, [entry], {
-        detached: true,
-        windowsHide: true,
-        stdio: ['pipe', 'ignore', 'ignore'], // stdin pipe — kapatmıyoruz
-        env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, // electron.exe'yi node gibi çalıştır
-      });
-      if (mcpChild.stdin) mcpChild.stdin.on('error', () => {});
-      mcpChild.unref();
-      return true;
-    } catch { /* yedek: npx */ }
-  }
-  const cmd = process.env.ComSpec || 'cmd.exe';
-  return startHidden(cmd, [
-    '/c',
-    'node -e "setInterval(()=>{},1e9)" | npx --yes robloxstudio-mcp@latest',
-  ]);
+  // Paket yerel kurulu değilse başlatmayız: npx ile indirmek bir konsol penceresi
+  // açıyor ve kullanıcı istemeden çalışıyordu. Studio köprüsü tamamen isteğe bağlıdır
+  // (roblox-studio/KURULUM.md). Kuruluysa arka planda, penceresiz başlatılır.
+  if (!fs.existsSync(entry)) return false;
+  try {
+    mcpChild = spawn(process.execPath, [entry], {
+      detached: true,
+      windowsHide: true,
+      stdio: ['pipe', 'ignore', 'ignore'], // stdin pipe — kapatmıyoruz
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, // electron.exe'yi node gibi çalıştır
+    });
+    if (mcpChild.stdin) mcpChild.stdin.on('error', () => {});
+    mcpChild.unref();
+    return true;
+  } catch { return false; }
 }
 // MCP köprüsü durumu (UI paneli için): sunucu ayakta mı + Studio açık mı +
 // eklenti gerçekten çalışıyor mu (execute_luau probe — /status pluginConnected
@@ -1603,13 +1600,11 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionCheckHandler((_wc, permission) =>
     permission === 'media' || permission === 'mediaKeySystem');
 
-  // Show the window right away (splash), bring services up in the background.
+  // Show the window right away (splash). Yardımcı servisler (Roblox Studio MCP)
+  // artık otomatik BAŞLATILMAZ — kullanıcı isterse sol menüdeki "Studio" çipinden
+  // bağlanır. Böylece açılışta istenmeyen konsol/pencere ve indirme olmaz.
   createWindow();
-  ensureServices().then((started) => {
-    if (started.length) console.log('[assistant] started hidden services:', started.join(', '));
-    // Günaydın rutini: servisler oturduktan sonra günde bir çalışır (ayar açıksa).
-    setTimeout(() => runMorningRoutine().catch(() => {}), 20000);
-  });
+  setTimeout(() => runMorningRoutine().catch(() => {}), 20000);
 
   // ---------- Personalization: oturum başlangıcı kaydı ----------
   // Uygulama açıldığında saat + proje bağlamını öğrenme sistemine kaydet.
