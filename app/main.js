@@ -2005,10 +2005,10 @@ ipcMain.handle('chat:models', () => {
     const _tbSave = () => { try { fs.writeFileSync(BUDGET_FILE, JSON.stringify(_tb)); } catch { /* yok */ } };
     const _tbEstimate = (s) => Math.ceil(String(s || '').length / 3);
     const _raw = String(chatInput || '').trim();
-    if (/bütçe.*(sıfırla|sifirla)/i.test(_raw)) { _tb.used = 0; _tb.bypass = false; _tbSave(); return { output: 'Token bütçesi sıfırlandı.', streamed: false, local: true, skill: 'budget' }; }
-    if (/bütçeyi\s*aş|bütçe.*aş/i.test(_raw)) { _tb.bypass = true; _tbSave(); return { output: 'Tamam, bütçe korumasını geçici olarak kaldırdım — dikkatli ol.', streamed: false, local: true, skill: 'budget' }; }
+    if (/bütçe.*(sıfırla|sifirla)|reset\s*budget/i.test(_raw)) { _tb.used = 0; _tb.bypass = false; _tbSave(); return { output: T('Token bütçesi sıfırlandı.'), streamed: false, local: true, skill: 'budget' }; }
+    if (/bütçeyi\s*aş|bütçe.*aş|(raise|bypass)\s*budget/i.test(_raw)) { _tb.bypass = true; _tbSave(); return { output: T('Tamam, bütçe korumasını geçici olarak kaldırdım — dikkatli ol.'), streamed: false, local: true, skill: 'budget' }; }
     if (!_tb.bypass && _tb.used >= BUDGET_MAX) {
-      return { output: 'Bu oturumun token bütçesi doldu (' + BUDGET_MAX.toLocaleString('tr') + ' token). Yeni bir görev için "bütçeyi sıfırla" ya da "bütçeyi aş" de.', streamed: false, local: true, skill: 'budget' };
+      return { output: T('Bu oturumun token bütçesi doldu ({n} token). Yeni bir görev için "bütçeyi sıfırla" ya da "bütçeyi aş" de.', { n: BUDGET_MAX.toLocaleString(i18n.getLang() === 'en' ? 'en-US' : 'tr') }), streamed: false, local: true, skill: 'budget' };
     }
     // Kullanıcının GERÇEK son mesajı — geçmiş eklendikten SONRA niyet/classifier
     // testleri yapılmaz; aksi halde geçmişteki "günün özeti", "günaydın", "spotify
@@ -2232,7 +2232,7 @@ ipcMain.handle('chat:models', () => {
           } catch { /* yok */ }
         };
         const res2 = await postDeepSeekTools({
-          model: webhook.modelName || 'deepseek-flash',
+          model: webhook.modelId || 'deepseek-flash',
           messages, tools: TOOLS, executeTool, onChunk, onToolCall, onToolDone,
           maxTokensPerCall: 8000, totalTimeMs: 300000, timeoutMs: 120000, signal: ac.signal,
           // Her model çağrısından önce: tahmini token ekle, bütçe aşıldıysa döngüyü durdur
@@ -2245,7 +2245,7 @@ ipcMain.handle('chat:models', () => {
             recordUsage(webhook.id || model || 'deepseek-flash', String((msgs || [])[msgs.length - 1] && (msgs[msgs.length - 1].content) || '').slice(0, 2000), '');
             return !_tb.bypass && _tb.used >= BUDGET_MAX;
           },
-          budgetHaltMessage: '**Token bütçesi doldu (' + BUDGET_MAX.toLocaleString('tr') + ' token).** Görev yarıda kesildi. Devam etmek için "bütçeyi sıfırla" ya da "bütçeyi aş" de.',
+          budgetHaltMessage: T('**Token bütçesi doldu ({n} token).** Görev yarıda kesildi. Devam etmek için "bütçeyi sıfırla" ya da "bütçeyi aş" de.', { n: BUDGET_MAX.toLocaleString(i18n.getLang() === 'en' ? 'en-US' : 'tr') }),
         });
         // halted durumlarda kullanıcıya net feedback ver + aktif görevin ilerlemesini ekle
         if (res2.halted) {
@@ -2255,9 +2255,9 @@ ipcMain.handle('chat:models', () => {
               + '\n*Devam etmek için "bütçeyi sıfırla" / "bütçeyi aş" de, sonra görevi tekrar sor.*'
             : '\n\n*Devam etmek için "bütçeyi sıfırla" ya da "bütçeyi aş" de.*';
           const reasonText = {
-            budget: '**Token bütçesi doldu (' + BUDGET_MAX.toLocaleString('tr') + ' token).** Görev yarıda kesildi.' + progress,
-            time:   '**Süre aşıldı.** ' + (res2.output || '') + progress,
-            loops:  '**Döngü sınırına ulaşıldı.** ' + (res2.output || '') + progress,
+            budget: T('**Token bütçesi doldu ({n} token).** Görev yarıda kesildi.', { n: BUDGET_MAX.toLocaleString(i18n.getLang() === 'en' ? 'en-US' : 'tr') }) + progress,
+            time:   T('**Süre aşıldı.** ') + (res2.output || '') + progress,
+            loops:  T('**Döngü sınırına ulaşıldı.** ') + (res2.output || '') + progress,
           }[res2.reason] || res2.output;
           return { output: reasonText, streamed: true };
         }
@@ -2271,12 +2271,12 @@ ipcMain.handle('chat:models', () => {
           if (active && active.steps) {
             const done = active.steps.filter((s) => s.done).length;
             const total = active.steps.length;
-            fallbackText = 'Şu ana kadar ' + done + '/' + total + ' adım tamamlandı. Devam ediyorum:\n';
+            fallbackText = T('Şu ana kadar {d}/{t} adım tamamlandı. Devam ediyorum:\n', { d: done, t: total });
           }
         } catch { /* yok */ }
         const fallbackInput = chatInput + '\n\n(SİSTEM NOTU: Artık hiçbir araç/fonksiyon kullanmana izin yok. <tool_calls> veya araç çağrısı üretme. Sadece düz Türkçe metinle cevap ver. Görevin son durumunu kullanıcıya kısaca özetle ve görevi bitirmek için somut adımı anlat.)';
-        const { output } = await postDeepSeek({ model: webhook.modelName || 'deepseek-flash', chatInput: fallbackInput, profile: '' }, onChunk, 300000, ac.signal);
-        return { output: (fallbackText + output).trim() || 'Görev devam ediyor. "devam et" demen yeterli.', streamed };
+        const { output } = await postDeepSeek({ model: webhook.modelId || 'deepseek-flash', chatInput: fallbackInput, profile: '' }, onChunk, 300000, ac.signal);
+        return { output: (fallbackText + output).trim() || T('Görev devam ediyor. "devam et" demen yeterli.'), streamed };
       } catch (err) {
         if (err.name === 'AbortError') return { cancelled: true };
         throw err;

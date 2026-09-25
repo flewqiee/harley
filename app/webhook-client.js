@@ -21,12 +21,19 @@ function friendlyStatus(name, status, body) {
 // Tek sohbet modeli: DeepSeek bulut. (Eski yerel Ollama modelleri kaldırıldı.)
 const WEBHOOKS = {
   'deepseek-flash': {
-    label: 'DeepSeek V4 Flash — Bulut',
+    label: 'DeepSeek V4.1 Flash — Cloud',
+    modelId: 'deepseek-flash',
+    cloud: true,
+  },
+  'deepseek-v4-pro': {
+    label: 'DeepSeek V4 Pro — Cloud',
+    modelId: 'deepseek-v4-pro',
     cloud: true,
   },
   // Eski model adıyla kaydedilmiş ayarlar için takma ad — aynı bulut modeline gider.
   'qwen2.5:3b': {
-    label: 'DeepSeek V4 Flash — Bulut',
+    label: 'DeepSeek V4.1 Flash — Cloud',
+    modelId: 'deepseek-flash',
     cloud: true,
   },
 };
@@ -179,8 +186,9 @@ function jsonProvider(provider, bodyObj, timeoutMs, signal) {
 // Harley persona'sı — hem akış (postDeepSeek) hem function-calling (postDeepSeekTools) kullanır.
 const PERSONA_TEXT = 'Sen Harley\'sin — Türkçe konuşan, samimi, pratik bir kişisel AI asistan. Görevleri net, adım adım ve doğru yap.\n\nÇALIŞMA ŞEKLİN:\n1. Kullanıcı sana bir iş/görev verdiğinde önce düşün, plan yap.\n2. İş uzunsa (birden çok adım → dosya oluşturma, proje kurma, kod yazma) ÖNCE task_plan aracını çağır. Adımları sırala. Kullanıcıya planı göster.\n3. Sonra her adımı sırayla uygula (workspace_list/read/write/mkdir/run vb.). Her adımı bitirince task_mark_done ile işaretle.\n4. Tüm adımlar bittiğinde test et: workspace_run ile çalıştır, dosyaları kontrol et.\n5. Her şey başarılıysa sonucu kullanıcıya özetle ve sun. Hata varsa düzeltip tekrar dene.\n\nKod üretirken açıklamalı ve tam çalışır kod ver. workspace_write ile dosyaya yaz. KOD DOSYASI ürettiğinde her dosyayı şu formatta ver (yazma modu açıksa otomatik kaydedilir):\n<<<DOSYA:göreli_yol>>>\n<dosya içeriği>\n<<<DOSYA SONU>>>';
 
-function postDeepSeek({ chatInput, profile }, onChunk, timeoutMs = 300000, signal) {
+function postDeepSeek({ chatInput, profile, model }, onChunk, timeoutMs = 300000, signal) {
   const provs = providers();
+  if (model && provs.length) provs[0].model = model;
   if (!provs.length) return Promise.reject(new Error('DeepSeek API anahtarı yok — Harley\'de sol menüdeki "Bağlantılar" panelinden ekle.'));
   const sysText = PERSONA_TEXT + (profile && profile.trim() ? '\nKULLANICI PROFİLİ:\n' + profile : '');
   const messages = [{ role: 'system', content: sysText }, { role: 'user', content: chatInput }];
@@ -213,6 +221,7 @@ function postDeepSeek({ chatInput, profile }, onChunk, timeoutMs = 300000, signa
 // kendine sonsuz döngüye girse bile token/mesaj patlamaz, döngü kırılır.
 function postDeepSeekTools({ model, messages, tools, executeTool, onChunk, onToolCall, onToolDone, maxLoops = 30, timeoutMs = 300000, signal, maxTokensPerCall = 3000, totalTimeMs = 240000, beforeCall, budgetHaltMessage }) {
   const provs = providers();
+  if (model && provs.length) provs[0].model = model;
   if (!provs.length) return Promise.reject(new Error('DeepSeek API anahtarı yok — Harley\'de sol menüdeki "Bağlantılar" panelinden ekle.'));
   // Her API çağrısında sağlayıcıları sırayla dener (failover).
   const callJsonFailover = async (bodyObj) => {

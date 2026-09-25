@@ -1726,7 +1726,9 @@ async function openEvolution() {
   try {
     const skills = await window.assistant.evolution.skills();
     if (skillsEl && Array.isArray(skills) && skills.length) {
-      const names = { clock: 'Saat & tarih', date: 'Tarih', 'system-status': 'Sistem durumu (CPU/RAM)', 'open-app': 'Uygulama aç/kapat', 'studio-status': 'Roblox Studio durumu', git: 'Git durumu', 'file-search': 'Dosya ara', reminder: 'Hatırlatıcı', calculator: 'Hesap makinesi', 'file-size': 'Klasör boyutu', 'too-short': 'Kısa mesaj', 'now-playing': 'Şu an ne çalıyor', github: 'GitHub (okuma)', 'project-status': 'Proje durumu' };
+      const names = (LANG === 'en')
+        ? { clock: 'Time & date', date: 'Date', 'system-status': 'System status (CPU/RAM)', 'open-app': 'Open/close app', 'studio-status': 'Roblox Studio status', git: 'Git status', 'file-search': 'Find file', reminder: 'Reminder', calculator: 'Calculator', 'file-size': 'Folder size', 'too-short': 'Short message', 'now-playing': 'Now playing', github: 'GitHub (read)', 'project-status': 'Project status' }
+        : { clock: 'Saat & tarih', date: 'Tarih', 'system-status': 'Sistem durumu (CPU/RAM)', 'open-app': 'Uygulama aç/kapat', 'studio-status': 'Roblox Studio durumu', git: 'Git durumu', 'file-search': 'Dosya ara', reminder: 'Hatırlatıcı', calculator: 'Hesap makinesi', 'file-size': 'Klasör boyutu', 'too-short': 'Kısa mesaj', 'now-playing': 'Şu an ne çalıyor', github: 'GitHub (okuma)', 'project-status': 'Proje durumu' };
       skillsEl.innerHTML = '';
       for (const s of skills) {
         const chip = document.createElement('span');
@@ -1998,12 +2000,12 @@ async function refreshConnStatus() {
     const last = (id, key) => {
       const el = $(id);
       if (!el) return;
-      const t = tests[key];
-      if (!t) { el.textContent = 'Henüz test edilmedi'; el.className = 'conn-last'; return; }
-      const d = new Date(t.ts);
-      const when = d.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-      el.textContent = 'Son test: ' + when + ' · ' + (t.ok ? 'başarılı' : 'başarısız');
-      el.className = 'conn-last' + (t.ok ? ' ok' : ' err');
+      const tt = tests[key];
+      if (!tt) { el.textContent = t('Henüz test edilmedi'); el.className = 'conn-last'; return; }
+      const d = new Date(tt.ts);
+      const when = d.toLocaleString(LANG === 'en' ? 'en-US' : 'tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      el.textContent = t('Son test: {w} · {r}', { w: when, r: t(tt.ok ? 'başarılı' : 'başarısız') });
+      el.className = 'conn-last' + (tt.ok ? ' ok' : ' err');
     };
     last('conn-last-deepseek', 'deepseek');
     last('conn-last-github', 'github');
@@ -2123,8 +2125,8 @@ function wireApproval() {
     const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const lines = String(p.message || '').split('\n');
     const html = lines.map((ln) => {
-      const t = ln.startsWith('+') ? 'diff-add' : ln.startsWith('-') ? 'diff-del' : '';
-      return '<div class="approval-line ' + t + '">' + esc(ln).replace(/\s/g, '&nbsp;') + '</div>';
+      const cls = ln.startsWith('+') ? 'diff-add' : ln.startsWith('-') ? 'diff-del' : '';
+      return '<div class="approval-line ' + cls + '">' + esc(ln).replace(/\s/g, '&nbsp;') + '</div>';
     }).join('');
     msg.innerHTML = html;
     const finish = (approved) => {
@@ -3213,8 +3215,8 @@ async function openProjectSearch(name, dir) {
     const show = (u) => {
       if (!u || !u.version) return;
       current = u;
-      const t = $('update-text');
-      if (t) t.textContent = 'Yeni sürüm v' + u.version + ' hazır';
+      const txt = $('update-text');
+      if (txt) txt.textContent = t('Yeni sürüm v{v} hazır', { v: u.version });
       banner.classList.remove('hidden');
     };
     if (window.assistant.updates.onAvailable) window.assistant.updates.onAvailable(show);

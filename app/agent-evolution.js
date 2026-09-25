@@ -5,6 +5,14 @@
 const fs = require('fs');
 const path = require('path');
 const { FILES } = require('./config');
+const i18n = require('./i18n');
+let I18N_EN = {};
+try { I18N_EN = require('./locales.json').en || {}; } catch { I18N_EN = {}; }
+function T(s, vars) {
+  let out = (i18n.getLang() === 'en' && I18N_EN[s] !== undefined) ? I18N_EN[s] : s;
+  if (vars) for (const k of Object.keys(vars)) out = out.split('{' + k + '}').join(String(vars[k]));
+  return out;
+}
 
 const STORE_FILE = FILES.agentEvolution;
 
@@ -75,7 +83,7 @@ function suggestions() {
     out.push({
       type: 'shortcut',
       skill: top.name,
-      text: `"${top.name}" becerisini ${top.total} kez kullandın — bunun için bir kısayol ekleyebilirim.`,
+      text: T('"{skill}" becerisini {n} kez kullandın — bunun için bir kısayol ekleyebilirim.', { skill: top.name, n: top.total }),
     });
   }
   // nadir kullanılanlar (toplam kullanımın <1/20 si, ama en az 1)
@@ -84,7 +92,7 @@ function suggestions() {
     out.push({
       type: 'prune',
       skills: rare.slice(0, 3).map((r) => r.name),
-      text: `Bu becerileri neredeyse hiç kullanmadın: ${rare.slice(0, 3).map((r) => r.name).join(', ')}. Kaldırmak ister misin?`,
+      text: T('Bu becerileri neredeyse hiç kullanmadın: {list}. Kaldırmak ister misin?', { list: rare.slice(0, 3).map((r) => r.name).join(', ') }),
     });
   }
   return out;
