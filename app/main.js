@@ -1226,7 +1226,7 @@ const TOOL_HANDLERS = {
     const approval = await requestUserApproval({
       type: 'git_commit',
       title: 'GitHub commit',
-      message: 'Şu değişiklikler commit edilecek:\n' + preview.text + '\n\nMesaj: ' + msg,
+      message: T('Şu değişiklikler commit edilecek:\n{p}\n\nMesaj: {m}', { p: preview.text, m: msg }),
     });
     if (!approval.approved) return 'Kullanıcı onaylamadı — commit yapılmadı.';
     await workspace.gitRun(sessionId, ['add', '-A']);
@@ -1247,7 +1247,7 @@ const TOOL_HANDLERS = {
     const approval = await requestUserApproval({
       type: 'git_push',
       title: 'GitHub push',
-      message: 'Şu değişiklikler GitHub\'a gönderilecek:\n' + (preview.text.includes('değişiklik') ? preview.text : '(çalışma alanı temiz — yalnızca commit\'ler push edilecek)'),
+      message: T('Şu değişiklikler GitHub\'a gönderilecek:\n{p}', { p: preview.text.includes('değişiklik') ? preview.text : T('(çalışma alanı temiz — yalnızca commit\'ler push edilecek)') }),
     });
     if (!approval.approved) return 'Kullanıcı onaylamadı — push yapılmadı.';
     const branch = await workspace.gitRun(sessionId, ['branch', '--show-current'], 10000);
@@ -1272,8 +1272,12 @@ const TOOL_HANDLERS = {
     const isPrivate = !!(a && a.private);
     const approval = await requestUserApproval({
       type: 'git_create_repo',
-      title: 'GitHub repo oluştur',
-      message: 'GitHub\'da yeni bir repo oluşturulacak:\nAd: ' + name + (desc ? '\nAçıklama: ' + desc : '') + '\nGizli: ' + (isPrivate ? 'evet' : 'hayır') + '\n\nBu klasör bu repoya bağlanacak ve içeriği push edilecek.',
+      title: T('GitHub repo oluştur'),
+      message: T('GitHub\'da yeni bir repo oluşturulacak:\nAd: {n}{d}\nGizli: {g}\n\nBu klasör bu repoya bağlanacak ve içeriği push edilecek.', {
+        n: name,
+        d: desc ? T('\nAçıklama: {x}', { x: desc }) : '',
+        g: i18n.getLang() === 'en' ? (isPrivate ? 'yes' : 'no') : (isPrivate ? 'evet' : 'hayır'),
+      }),
     });
     diag('git_create_repo: onay = ' + JSON.stringify(approval));
     if (!approval.approved) return 'Kullanıcı onaylamadı — repo oluşturulmadı.';
@@ -1326,8 +1330,8 @@ const TOOL_HANDLERS = {
     const fullName = (me ? me + '/' : '') + name;
     const approval = await requestUserApproval({
       type: 'git_link_repo',
-      title: 'GitHub repo bağla',
-      message: 'Bu klasör GitHub\'daki mevcut repoya bağlanacak:\nRepo: ' + fullName + (isPrivate ? ' (gizli)' : '') + '\n\nLocal dosyalar bu repoya push edilecek.',
+      title: T('GitHub repo bağla'),
+      message: T('Bu klasör GitHub\'daki mevcut repoya bağlanacak:\nRepo: {r}{p}\n\nLocal dosyalar bu repoya push edilecek.', { r: fullName, p: isPrivate ? T(' (gizli)') : '' }),
     });
     if (!approval.approved) return 'Kullanıcı onaylamadı — bağlanılmadı.';
     // Repo var mı kontrol et + clone_url al
@@ -1379,14 +1383,14 @@ const TOOL_HANDLERS = {
     if (action === 'merge') {
       const target = String((a && a.target) || '').trim();
       if (!target) return 'Birleştirilecek branch adı ver (target).';
-      const approval = await requestUserApproval({ type: 'git_merge', title: 'Git branch birleştir', message: 'Branch "' + target + '" geçerli branch ile birleştirilecek.' });
+      const approval = await requestUserApproval({ type: 'git_merge', title: T('Git branch birleştir'), message: T('Branch "{t}" geçerli branch ile birleştirilecek.', { t: target }) });
       if (!approval.approved) return 'Kullanıcı onaylamadı — merge yapılmadı.';
       const r = await workspace.gitRun(sessionId, ['merge', target]);
       return r.ok ? 'Birleştirildi: ' + target + ' → geçerli branch.' : r.error;
     }
     if (action === 'delete') {
       if (!name) return 'Silinecek branch adı ver.';
-      const approval = await requestUserApproval({ type: 'git_delete_branch', title: 'Git branch sil', message: 'Branch "' + name + '" silinecek.' });
+      const approval = await requestUserApproval({ type: 'git_delete_branch', title: T('Git branch sil'), message: T('Branch "{n}" silinecek.', { n: name }) });
       if (!approval.approved) return 'Kullanıcı onaylamadı — silinmedi.';
       const r = await workspace.gitRun(sessionId, ['branch', '-d', name]);
       return r.ok ? 'Branch silindi: ' + name : r.error;
@@ -1397,7 +1401,7 @@ const TOOL_HANDLERS = {
     const sum = await workspace.gitChangeSummary(sessionId);
     if (!sum.ok) return 'Bu sohbete çalışma klasörü bağlı değil — önce klasör bağla.';
     const commit = String((a && a.commit) || 'HEAD').trim();
-    const approval = await requestUserApproval({ type: 'git_revert', title: 'Git commit geri al', message: 'Commit "' + commit + '" geri alınacak (yeni bir commit oluşur).' });
+    const approval = await requestUserApproval({ type: 'git_revert', title: T('Git commit geri al'), message: T('Commit "{c}" geri alınacak (yeni bir commit oluşur).', { c: commit }) });
     if (!approval.approved) return 'Kullanıcı onaylamadı — geri alınmadı.';
     const r = await workspace.gitRun(sessionId, ['revert', '--no-edit', commit]);
     return r.ok ? 'Geri alındı: ' + commit : r.error;
@@ -1483,7 +1487,7 @@ const TOOL_HANDLERS = {
     if (action === 'open') {
       const title = String((a && a.title) || '').trim();
       if (!title) return 'Issue başlığı ver.';
-      const approval = await requestUserApproval({ type: 'github_issue_open', title: 'GitHub issue aç', message: 'Yeni issue açılacak:\nBaşlık: ' + title + '\nRepo: ' + full });
+      const approval = await requestUserApproval({ type: 'github_issue_open', title: T('GitHub issue aç'), message: T('Yeni issue açılacak:\nBaşlık: {t}\nRepo: {r}', { t: title, r: full }) });
       if (!approval.approved) return 'Kullanıcı onaylamadı — issue açılmadı.';
       const j = await github.api('/repos/' + full + '/issues', { method: 'POST', body: { title, body: String((a && a.body) || '').trim() || '' } });
       if (j.error) return 'Issue açılamadı: ' + (j.message || 'hata');
@@ -1528,8 +1532,8 @@ const TOOL_HANDLERS = {
     const message = String((a && a.message) || '').trim() || ('auto-sync: ' + preview.changes.length + ' değişiklik');
     const approval = await requestUserApproval({
       type: 'auto_sync',
-      title: 'Otomatik senkron',
-      message: 'Şu değişiklikler GitHub\'a gönderilecek:\n' + preview.text + '\n\nMesaj: ' + message,
+      title: T('Otomatik senkron'),
+      message: T('Şu değişiklikler GitHub\'a gönderilecek:\n{p}\n\nMesaj: {m}', { p: preview.text, m: message }),
     });
     if (!approval.approved) return 'Kullanıcı onaylamadı — senkron iptal.';
     
@@ -1608,8 +1612,8 @@ const TOOL_HANDLERS = {
     // Kullanıcı onayı: main'e merge + push
     const approval = await requestUserApproval({
       type: 'feature_merge',
-      title: 'Özellik branch birleştir',
-      message: 'Feature branch "' + feature + '" main branch\'e merge edilip GitHub\'a push edilecek.\n\nHazırsan onayla.',
+      title: T('Özellik branch birleştir'),
+      message: T('Feature branch "{f}" main branch\'e merge edilip GitHub\'a push edilecek.\n\nHazırsan onayla.', { f: feature }),
     });
     if (!approval.approved) {
       // Onaylanmazsa feature branch'te kal (kullanıcı çalışmaya devam edebilir)

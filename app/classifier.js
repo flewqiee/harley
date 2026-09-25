@@ -12,8 +12,29 @@ const secureStore = require('./secure-store');
 const i18n = require('./i18n');
 let I18N_EN = {};
 try { I18N_EN = require('./locales.json').en || {}; } catch { I18N_EN = {}; }
+// Dinamik yanıtlar için önek/parça çevirileri (tam eşleşme yetmediğinde).
+const TR_PREFIX = [
+  ['VS Code açıldı: ', 'VS Code opened: '],
+  ['Değişen dosya: ', 'Changed file: '],
+  ['Repo bilgisi alınamadı: ', 'Could not get repo info: '],
+  ['Repo listesi alınamadı: ', 'Could not get repo list: '],
+  ['Profil güncellendi: ', 'Profile updated: '],
+  ['Spotify bağlanamadı: ', 'Could not connect to Spotify: '],
+  ['Şarkıyı çalarken hata oldu: ', 'Error while playing the song: '],
+  ['API hatası: ', 'API error: '],
+  ['IDE hatası: ', 'IDE error: '],
+  ['Test hatası: ', 'Test error: '],
+];
+const TR_SUBSTR = [
+  ['" diye bir şarkı bulamadım.', 'I couldn\'t find a song called "'],
+];
 function T(s, vars) {
-  let out = (i18n.getLang() === 'en' && I18N_EN[s] !== undefined) ? I18N_EN[s] : s;
+  let out = s;
+  if (i18n.getLang() === 'en') {
+    if (I18N_EN[s] !== undefined) out = I18N_EN[s];
+    else { for (const [a, b] of TR_PREFIX) if (out.startsWith(a)) { out = b + out.slice(a.length); break; } }
+    for (const [a, b] of TR_SUBSTR) out = out.split(a).join(b);
+  }
   if (vars) for (const k of Object.keys(vars)) out = out.split('{' + k + '}').join(String(vars[k]));
   return out;
 }
@@ -947,7 +968,11 @@ registerSkill({
     if (!sessionId) return 'Önce bir proje klasörü bağla.';
     const config = await ctx.testRunner.getConfig({ sessionId });
     if (!config) return 'Test yapılandırması bulunamadı.';
-    return `Proje: ${config.projectType}\nFramework: ${config.framework}\nWatch: ${config.hasWatch ? 'evet' : 'hayır'}\nCoverage: ${config.hasCoverage ? 'evet' : 'hayır'}`;
+    return T('Proje: {p}\nFramework: {f}\nWatch: {w}\nCoverage: {c}', {
+      p: config.projectType, f: config.framework,
+      w: i18n.getLang() === 'en' ? (config.hasWatch ? 'yes' : 'no') : (config.hasWatch ? 'evet' : 'hayır'),
+      c: i18n.getLang() === 'en' ? (config.hasCoverage ? 'yes' : 'no') : (config.hasCoverage ? 'evet' : 'hayır'),
+    });
   },
 });
 
@@ -961,7 +986,7 @@ registerSkill({
  */
 function classify(input, ctx) {
   const text = String(input || '').trim();
-  if (!text) return { handled: true, response: 'Bir yazman gerekiyor.', skill: 'empty' };
+  if (!text) return { handled: true, response: T('Bir yazman gerekiyor.'), skill: 'empty' };
 
   for (const skill of skills) {
     for (const pattern of skill.patterns) {
@@ -978,8 +1003,8 @@ function classify(input, ctx) {
         if (result && typeof result.then === 'function') {
           return { handled: false, skill: skill.name, needsAI: false, _asyncHandler: result };
         }
-        // Senkron cevap
-        return { handled: true, response: result, skill: skill.name };
+        // Senkron cevap (TR kaynak → seçili dil)
+        return { handled: true, response: (typeof result === 'string' ? T(result) : result), skill: skill.name };
       }
     }
   }
@@ -993,7 +1018,8 @@ function classify(input, ctx) {
  */
 async function runAsyncHandler(classification) {
   if (classification._asyncHandler) {
-    const response = await classification._asyncHandler;
+    let response = await classification._asyncHandler;
+    if (typeof response === 'string') response = T(response);
     return { handled: true, response, skill: classification.skill };
   }
   return classification;

@@ -2108,8 +2108,8 @@ function wireApproval() {
         '<div class="approval-title" id="approval-title"></div>' +
         '<div class="approval-msg" id="approval-msg"></div>' +
         '<div class="approval-actions">' +
-        '<button id="approval-yes" class="approval-btn approval-yes">Evet, onayla</button>' +
-        '<button id="approval-no" class="approval-btn approval-no">Hayır</button>' +
+        '<button id="approval-yes" class="approval-btn approval-yes">' + t('Evet, onayla') + '</button>' +
+        '<button id="approval-no" class="approval-btn approval-no">' + t('Hayır') + '</button>' +
         '</div></div>';
       document.body.appendChild(overlay);
     }
