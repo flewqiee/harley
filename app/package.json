@@ -1,6 +1,6 @@
 {
   "name": "harley",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Kişisel AI asistan — bulut (DeepSeek + Google API)",
   "author": "Umut Efe Kurucay",
   "main": "main.js",
