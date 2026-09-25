@@ -29,6 +29,8 @@
       "preload.js",
       "config.js",
       "secure-store.js",
+      "i18n.js",
+      "locales.json",
       "workspace.js",
       "rag.js",
       "google.js",

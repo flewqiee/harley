@@ -10,6 +10,38 @@ window.addEventListener('unhandledrejection', (e) => {
 
 const $ = (id) => document.getElementById(id);
 
+// ---------- i18n (TR kaynak → EN) ----------
+let LANG = 'tr';
+const LOCALES = (window.assistant && window.assistant.i18n && window.assistant.i18n.locales) || { en: {} };
+// t('Türkçe kaynak', {degisken}) → EN modunda çevirir; anahtar yoksa Türkçe kalır.
+function t(s, vars) {
+  let out = (LANG === 'en' && LOCALES.en && LOCALES.en[s] !== undefined) ? LOCALES.en[s] : s;
+  if (vars) for (const k of Object.keys(vars)) out = out.split('{' + k + '}').join(String(vars[k]));
+  return out;
+}
+// Statik HTML metinlerini ve attribute'ları çevirir (TR kaynak anahtarlarıyla).
+function applyI18n(root) {
+  if (LANG !== 'en') return;
+  const scope = root || document.body;
+  const norm = (s) => s.replace(/\s+/g, ' ').trim();
+  const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const n of nodes) {
+    const raw = n.nodeValue;
+    const key = norm(raw);
+    if (!key) continue;
+    const tr = LOCALES.en[key];
+    if (tr !== undefined) n.nodeValue = raw.replace(raw.trim(), tr);
+  }
+  scope.querySelectorAll('[placeholder]').forEach((el) => { const v = el.getAttribute('placeholder'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('placeholder', tr); });
+  scope.querySelectorAll('[title]').forEach((el) => { const v = el.getAttribute('title'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('title', tr); });
+}
+async function initLang() {
+  try { LANG = await window.assistant.i18n.lang(); } catch { LANG = 'tr'; }
+  document.documentElement.lang = LANG;
+}
+
 const LS_SESSIONS = 'assistant_sessions_v1';
 const LS_MODEL = 'assistant_model';
 const LS_THEME = 'harley_theme';
@@ -239,43 +271,43 @@ async function maybeShowSetup() {
     hide();
   };
 
-  const btn = (label, cls) => '<button class="sw-btn' + (cls ? ' ' + cls : '') + '" data-sw="' + label + '">' + label + '</button>';
-  const chip = (label, ok) => '<div class="sw-item' + (ok ? ' ok' : '') + '"><span class="sw-check">' + (ok ? '✓' : '•') + '</span><div class="sw-text"><div>' + label + '</div><div class="sw-hint">' + (ok ? 'Hazır' : 'bağlı değil') + '</div></div></div>';
+  const btn = (id, cls) => '<button class="sw-btn' + (cls ? ' ' + cls : '') + '" data-sw="' + id + '">' + t(id) + '</button>';
+  const chip = (label, ok) => '<div class="sw-item' + (ok ? ' ok' : '') + '"><span class="sw-check">' + (ok ? '✓' : '•') + '</span><div class="sw-text"><div>' + t(label) + '</div><div class="sw-hint">' + (ok ? t('Hazır') : t('bağlı değil')) + '</div></div></div>';
 
   const render = () => {
     if (step === 0) {
-      title.textContent = "Harley'ye hoş geldin!";
-      sub.textContent = 'Seni tanıyalım — birkaç saniye sürer.';
-      note.textContent = 'Adını sonra Ayarlar > Adın alanından da değiştirebilirsin.';
+      title.textContent = t("Harley'ye hoş geldin!");
+      sub.textContent = t('Seni tanıyalım — birkaç saniye sürer.');
+      note.textContent = t('Adını sonra Ayarlar > Adın alanından da değiştirebilirsin.');
       items.innerHTML =
-        '<div class="sw-field"><span>Seni nasıl çağırayım?</span>' +
-        '<input id="sw-name" type="text" placeholder="örn. Ayşe" value="' + esc(settings.name || '') + '" autocomplete="off" /></div>';
+        '<div class="sw-field"><span>' + t('Seni nasıl çağırayım?') + '</span>' +
+        '<input id="sw-name" type="text" placeholder="' + t('örn. Ayşe') + '" value="' + esc(settings.name || '') + '" autocomplete="off" /></div>';
       actions.innerHTML = btn('Atla') + btn('Devam', 'primary');
     } else if (step === 1) {
-      title.textContent = 'Sohbet anahtarı';
-      sub.textContent = 'Harley, DeepSeek API anahtarınla düşünür. Anahtar yalnızca bu bilgisayarda saklanır.';
-      note.textContent = 'Ücretsiz anahtar: platform.deepseek.com/api_keys';
+      title.textContent = t('Sohbet anahtarı');
+      sub.textContent = t('Harley, DeepSeek API anahtarınla düşünür. Anahtar yalnızca bu bilgisayarda saklanır.');
+      note.textContent = t('Ücretsiz anahtar: platform.deepseek.com/api_keys');
       items.innerHTML =
         chip('DeepSeek bağlı', hasDeepseek) +
-        '<div class="sw-field"><span>DeepSeek API anahtarı</span>' +
+        '<div class="sw-field"><span>' + t('DeepSeek API anahtarı') + '</span>' +
         '<input id="sw-key" type="password" placeholder="sk-..." autocomplete="off" /></div>' +
         '<div class="sw-status" id="sw-status"></div>';
       actions.innerHTML = hasDeepseek ? (btn('Geri') + btn('Devam', 'primary')) : (btn('Geri') + btn('Kaydet ve Test Et', 'primary'));
     } else if (step === 2) {
-      title.textContent = 'Diğer bağlantılar (isteğe bağlı)';
-      sub.textContent = 'İstediklerini bağla; kalanı sonra Bağlantılar panelinden halledebilirsin.';
-      note.textContent = 'Bağlanmayan servisler Harley\'yi engellemez.';
+      title.textContent = t('Diğer bağlantılar (isteğe bağlı)');
+      sub.textContent = t('İstediklerini bağla; kalanı sonra Bağlantılar panelinden halledebilirsin.');
+      note.textContent = t('Bağlanmayan servisler Harley\'yi engellemez.');
       items.innerHTML =
         chip('GitHub — repo, commit & push, issue', !!(conn.github)) +
         chip('Google — Takvim / Gmail / Drive / Görevler', !!(conn.google || st.google)) +
         chip('Spotify — komutla müzik başlatma', !!(conn.spotify || st.spotify)) +
-        '<button class="sw-btn" id="sw-open-conn">Bağlantılar panelini aç</button>';
+        '<button class="sw-btn" id="sw-open-conn">' + t('Bağlantılar panelini aç') + '</button>';
       actions.innerHTML = btn('Geri') + btn('Bitir', 'primary');
     } else {
-      title.textContent = 'Harley hazır!';
-      sub.textContent = 'Aşağıdaki kutuya bir şey yaz — "Merhaba Harley" diyebilirsin.';
+      title.textContent = t('Harley hazır!');
+      sub.textContent = t('Aşağıdaki kutuya bir şey yaz — "Merhaba Harley" diyebilirsin.');
       note.textContent = '';
-      items.innerHTML = '<div class="sw-item ok"><span class="sw-check">✓</span><div class="sw-text"><div>Kurulum tamamlandı</div><div class="sw-hint">Anahtarları dilediğin zaman Bağlantılar panelinden değiştirebilirsin.</div></div></div>';
+      items.innerHTML = '<div class="sw-item ok"><span class="sw-check">✓</span><div class="sw-text"><div>' + t('Kurulum tamamlandı') + '</div><div class="sw-hint">' + t('Anahtarları dilediğin zaman Bağlantılar panelinden değiştirebilirsin.') + '</div></div></div>';
       actions.innerHTML = btn('Başla', 'primary');
     }
     wire();
@@ -291,14 +323,14 @@ async function maybeShowSetup() {
         else if (label === 'Kaydet ve Test Et') {
           const key = ($('sw-key') && $('sw-key').value.trim()) || '';
           const statusEl = $('sw-status');
-          if (!key) { if (statusEl) { statusEl.textContent = 'Anahtar boş.'; statusEl.className = 'sw-status err'; } return; }
-          if (statusEl) { statusEl.textContent = 'Test ediliyor…'; statusEl.className = 'sw-status'; }
+          if (!key) { if (statusEl) { statusEl.textContent = t('Anahtar boş.'); statusEl.className = 'sw-status err'; } return; }
+          if (statusEl) { statusEl.textContent = t('Test ediliyor…'); statusEl.className = 'sw-status'; }
           b.disabled = true;
           let r;
           try { r = await window.assistant.connections.saveDeepseek(key); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
           b.disabled = false;
-          if (r && r.ok) { hasDeepseek = true; if (statusEl) { statusEl.textContent = 'Anahtar çalışıyor — bağlandı.'; statusEl.className = 'sw-status ok'; } step = 2; render(); }
-          else if (statusEl) { statusEl.textContent = (r && r.message) || 'Kaydedilemedi.'; statusEl.className = 'sw-status err'; }
+          if (r && r.ok) { hasDeepseek = true; if (statusEl) { statusEl.textContent = t('Anahtar çalışıyor — bağlandı.'); statusEl.className = 'sw-status ok'; } step = 2; render(); }
+          else if (statusEl) { statusEl.textContent = (r && r.message) || t('Kaydedilemedi.'); statusEl.className = 'sw-status err'; }
         }
       });
     });
@@ -324,6 +356,13 @@ const ONBOARD_STEPS = [
   { title: 'Hazır Sorular', icon: 'bulb', body: 'Alt taraftaki butonlarla hızlı başlayabilirsin: İş/Proje, Proje/Git, Eğlence.<br><br>Bir prompta tıklayınca yazı kutusuna dolar, sen Enter\'a basarsın.' },
   { title: 'Senin Güvenliğin', icon: 'lock', body: 'Tokenların asla sohbetten geçmez, GitHub yazma işlemleri hep onayınla olur. İstediğin zaman "Tümünü Kapat" butonuyla Harley ve yardımcı programları kapatabilirsin.' },
 ];
+const ONBOARD_STEPS_EN = [
+  { title: 'Welcome to Harley!', icon: 'game', body: 'I am your personal AI assistant. I can chat, build your projects and push them to GitHub.<br><br><b>To start:</b> type something in the <b>Send</b> box at the bottom — try "Hello Harley!"' },
+  { title: 'Workspace', icon: 'folder', body: 'When you pick a project folder I get <b>full access</b> there: I can read/write files, run commands and tests.<br><br>Click the <b>0/1</b> button in the footer to bind a folder.' },
+  { title: 'GitHub Sync', icon: 'refresh', body: 'I can turn your bound folder into a GitHub repo or link it to an existing one.<br><br>When you say "Create repo", "Commit", "Push", I <b>ask for your approval</b> — nothing is sent unless you say yes.' },
+  { title: 'Quick Prompts', icon: 'bulb', body: 'Use the buttons at the bottom to start fast: Work/Project, Project/Git, Fun.<br><br>Clicking a prompt fills the input box; you press Enter.' },
+  { title: 'Your Security', icon: 'lock', body: 'Your tokens never pass through chat, GitHub write actions always need your approval. You can shut down Harley and helper programs anytime with "Shut down".' },
+];
 function maybeShowOnboarding() {
   const overlay = $('onboard-overlay');
   if (!overlay) return false;
@@ -335,13 +374,14 @@ function maybeShowOnboarding() {
   const prev = $('onboard-prev');
   const next = $('onboard-next');
   const skip = $('onboard-skip');
+  const STEPS = (LANG === 'en' && ONBOARD_STEPS_EN) ? ONBOARD_STEPS_EN : ONBOARD_STEPS;
   const render = () => {
-    const s = ONBOARD_STEPS[step];
+    const s = STEPS[step];
     title.innerHTML = (s.icon ? svgIcon(s.icon, 22) : '') + ' ' + s.title;
     body.innerHTML = s.body;
-    dots.innerHTML = ONBOARD_STEPS.map((_, i) => '<span class="onboard-dot' + (i === step ? ' active' : '') + '"></span>').join('');
+    dots.innerHTML = STEPS.map((_, i) => '<span class="onboard-dot' + (i === step ? ' active' : '') + '"></span>').join('');
     prev.disabled = step === 0;
-    next.textContent = step === ONBOARD_STEPS.length - 1 ? 'Başla' : 'Devam →';
+    next.textContent = step === STEPS.length - 1 ? t('Başla') : t('Devam →');
   };
   const close = () => {
     overlay.classList.add('hidden');
@@ -350,7 +390,7 @@ function maybeShowOnboarding() {
     if (typeof maybeShowSetup === 'function') maybeShowSetup();
   };
   prev.onclick = () => { if (step > 0) { step--; render(); } };
-  next.onclick = () => { if (step < ONBOARD_STEPS.length - 1) { step++; render(); } else close(); };
+  next.onclick = () => { if (step < STEPS.length - 1) { step++; render(); } else close(); };
   skip.onclick = close;
   render();
   overlay.classList.remove('hidden');
@@ -1131,8 +1171,11 @@ function toggleTts() {
 }
 
 // ---------- personal settings ----------
+let _langAtOpen = 'auto';
 async function openSettings() {
   const st = await window.assistant.settings.get();
+  _langAtOpen = st.language || 'auto';
+  if ($('set-lang')) $('set-lang').value = _langAtOpen;
   $('set-name').value = st.name || '';
   $('set-address').value = st.address || '';
   $('set-style').value = st.style || 'orta';
@@ -1179,6 +1222,7 @@ async function saveSettings() {
     defaultModel: $('set-model').value,
     theme: $('set-theme').value,
     ttsEngine: $('set-tts-engine') ? $('set-tts-engine').value : 'edge',
+    language: $('set-lang') ? $('set-lang').value : 'auto',
   };
   localStorage.setItem(LS_MEOW, s.meowLocal ? 'on' : 'off');
   const ok = await window.assistant.settings.set(s);
@@ -1190,6 +1234,12 @@ async function saveSettings() {
     }
     applyTheme(s.theme === 'dark' ? 'dark' : 'light');
     refreshVoicePrefs();
+    // Dil değiştiyse arayüzü yeniden yükle
+    if (s.language && s.language !== _langAtOpen) {
+      status.textContent = 'Dil değişti — yeniden yükleniyor…';
+      setTimeout(() => location.reload(), 600);
+      return;
+    }
     status.textContent = 'Kaydedildi — Harley artık bu tercihlerle konuşuyor';
     setTimeout(closeSettings, 1100);
   } else {
@@ -2588,6 +2638,8 @@ async function openProjectSearch(name, dir) {
 
 // ---------- init ----------
 (async function init() {
+  await initLang();
+  applyI18n();
   models = await window.assistant.models();
   for (const m of models) {
     const opt = document.createElement('option');
@@ -2608,7 +2660,7 @@ async function openProjectSearch(name, dir) {
   // ---------- Ana Menü (hub) ----------
   setIcon($('home-btn'), 'home', 15);
   $('home-btn').insertAdjacentHTML('beforeend', '<span></span>');
-  $('home-btn').lastChild.textContent = 'Ana Menü';
+  $('home-btn').lastChild.textContent = t('Ana Menü');
   $('home-btn').addEventListener('click', showHub);
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && (e.key === 'h' || e.key === 'H')) { e.preventDefault(); showHub(); }
@@ -2684,13 +2736,13 @@ async function openProjectSearch(name, dir) {
     const el = $(id);
     if (el) el.insertAdjacentHTML('beforeend', '<span></span>');
   });
-  $('new-chat').lastChild.textContent = 'Yeni Sohbet';
-  $('memory-btn').lastChild.textContent = 'Bellek';
-  $('clipboard-btn').lastChild.textContent = 'Pano';
-  $('evolution-btn').lastChild.textContent = 'Beceriler';
-  $('personalization-btn').lastChild.textContent = 'Kişiselleştir';
-  $('testrunner-btn').lastChild.textContent = 'Testler';
-  $('connections-btn').lastChild.textContent = 'Bağlantılar';
+  $('new-chat').lastChild.textContent = t('Yeni Sohbet');
+  $('memory-btn').lastChild.textContent = t('Bellek');
+  $('clipboard-btn').lastChild.textContent = t('Pano');
+  $('evolution-btn').lastChild.textContent = t('Beceriler');
+  $('personalization-btn').lastChild.textContent = t('Kişiselleştir');
+  $('testrunner-btn').lastChild.textContent = t('Testler');
+  $('connections-btn').lastChild.textContent = t('Bağlantılar');
   setIcon($('attach-btn'), 'attach', 15);
 
   // ---------- dosya ekleme ----------

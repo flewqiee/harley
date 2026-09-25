@@ -28,6 +28,7 @@ const projectMemory = require('./project-memory');
 const testRunner = require('./test-runner');
 const github = require('./github');
 const secureStore = require('./secure-store');
+const i18n = require('./i18n');
 
 // Proje kökü + otomatik yazma dosyası — module scope'ta (TDZ riski olmasın).
 const PROJECT_BASE = path.resolve(PROJECTS_DIR);
@@ -1805,7 +1806,10 @@ ipcMain.handle('chat:models', () => {
     '## KİMLİK\nSen Harley’sin — kullanıcının kişisel yapay zeka asistanı.\n' +
     'Adın Harley. Kişiliğin: yardımsever, zeki, sadık, ama gereksiz yere ballandırmayan. ' +
     'Kullanıcıya "sen" diye hitap et; adını biliyorsan adıyla, bilmiyorsan nötr bir hitapla konuş. Samimi ama profesyonel ol. ' +
-    'Gereksiz laf kalabalığı yapma — net, kısa, işe yarar cevaplar ver.\n\n',
+    'Gereksiz laf kalabalığı yapma — net, kısa, işe yarar cevaplar ver.\n' +
+    (i18n.getLang() === 'en'
+      ? 'Yanıtlarını İngilizce yaz. Kullanıcı başka bir dilde yazarsa o dilde yanıtla.\n\n'
+      : 'Yanıtlarını Türkçe yaz. Kullanıcı başka bir dilde yazarsa o dilde yanıtla.\n\n'),
 
     '## DAVRANIŞ KURALLARI (HER ZAMAN UY — ihlal etme)\n'
     + '1. ASLA uydurma bilgi verme. Emin olmadığın bir şeyi bilmiyorsan "Bilmiyorum" de veya web ara.\n'
@@ -1814,7 +1818,7 @@ ipcMain.handle('chat:models', () => {
     + '4. Cevapların doğal ve samimi olsun — laf kalabalığı yapma ama soruyu anladığını göster. Sohbet sorusu gelince tek cümleyle geçiştirme; soru "fikir/öneri/nasıl yapılır" gibi bir soruysa biraz açıklayıcı cevap ver. Kod istenirse "İşte kodun:" de, kodu yapıştır, kısa açıklama ekle.\n'
     + '5. Hata mesajı geldiyse: kök nedeni bul, çözümü ver, tekrar deneme talimatı yaz.\n'
     + '6. Proje geliştirme istenirse: mevcut dosyaları oku, yapıyı anla, incremental öner.\n'
-    + '7. Türkçe yaz. İngilizce teknik terimleri olduğu gibi bırak (API, SDK, class vs.).\n'
+    + '7. Kullanıcının dilinde yaz (yukarıdaki DİL kuralı). İngilizce teknik terimleri olduğu gibi bırak (API, SDK, class vs.).\n'
     + '8. Emoji KULLANMA — hiçbir cevapta emoji yok. Sade, temiz, minimalist yaz.\n'
     + '9. "Yapabilirim" veya "İstersen şunu yapabilirim" gibi boş laf eyleme. Ya yap ya da yapamıyorsan söyle.\n'
     + '10. Kod parçası istenirse: tam çalışır kod ver, parçalı/lüks verme. Modüler yaz.\n\n',
@@ -1950,6 +1954,9 @@ ipcMain.handle('chat:models', () => {
       return { ok: true, message: 'Tüm veriler silindi. Uygulama yeniden başlatılıyor.' };
     } catch (e) { return { ok: false, message: 'Silinemedi: ' + e.message }; }
   });
+
+  // ---------- Dil ----------
+  ipcMain.handle('i18n:lang', () => i18n.getLang());
 
   // ---------- Güncelleme kontrolü ----------
   ipcMain.handle('app:version', () => app.getVersion());
