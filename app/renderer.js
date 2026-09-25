@@ -36,6 +36,7 @@ function applyI18n(root) {
   }
   scope.querySelectorAll('[placeholder]').forEach((el) => { const v = el.getAttribute('placeholder'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('placeholder', tr); });
   scope.querySelectorAll('[title]').forEach((el) => { const v = el.getAttribute('title'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('title', tr); });
+  scope.querySelectorAll('[data-q]').forEach((el) => { const v = el.getAttribute('data-q'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('data-q', tr); });
 }
 // Arayüzü yeniden yükle (will-navigate engeli location.reload'u kestiği için IPC).
 function reloadApp() {
@@ -1867,7 +1868,7 @@ async function openTestRunner() {
   try {
     const cfg = await window.assistant.testRunner.getConfig({ sessionId: activeId });
     if (!cfg) {
-      cfgEl.innerHTML = '<p class="muted">Bu sohbete çalışma klasörü bağlı değil. Footer\'daki klasör (0/1) butonundan bağla.</p>';
+        cfgEl.innerHTML = '<p class="muted">' + t('Bu sohbete çalışma klasörü bağlı değil. Footer\'daki klasör (0/1) butonundan bağla.') + '</p>';
       return;
     }
     if (!cfg.framework || cfg.framework === 'none') {
@@ -2281,8 +2282,8 @@ async function renderHub() {
     const c = $('hub-clock'), d = $('hub-date');
     if (!c) return;
     const now = new Date();
-    c.textContent = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    if (d) d.textContent = now.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
+    c.textContent = now.toLocaleTimeString(LANG === 'en' ? 'en-US' : 'tr-TR', { hour: '2-digit', minute: '2-digit' });
+    if (d) d.textContent = now.toLocaleDateString(LANG === 'en' ? 'en-US' : 'tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
   };
   tickClock();
   if (!window.__hubClockTimer) {
@@ -2304,7 +2305,7 @@ async function renderHub() {
       if (r && r.output) {
         p.textContent = String(r.output).slice(0, 220) + (String(r.output).length > 220 ? '…' : '');
       } else if (r && r.error) {
-        p.textContent = 'Özet alınamadı: ' + r.error;
+        p.textContent = t('Özet alınamadı: ') + r.error;
       }
     }).catch(() => {});
   }
@@ -2312,7 +2313,7 @@ async function renderHub() {
   try {
     const st = await window.assistant.settings.get();
     const n = $('hub-name');
-    if (n) n.textContent = (st && st.name) ? st.name : 'dostum';
+    if (n) n.textContent = (st && st.name) ? st.name : t('dostum');
   } catch { /* varsayılan */ }
   // Token panosu (5 sn önbellek)
   try {
@@ -2336,7 +2337,7 @@ async function renderHub() {
     if (tokenCountEl) tokenCountEl.textContent = fmt(u.total || 0);
     if (avgEl) {
       const days = (u.days || []).length || 1;
-      avgEl.textContent = fmt(Math.round((u.total || 0) / days)) + '/gun';
+      avgEl.textContent = fmt(Math.round((u.total || 0) / days)) + t('/gun');
     }
     // GitHub istek sayacı + bütçe doluluk (görsel takip)
     const ghCountEl = $('usage-gh-count');
@@ -2351,7 +2352,7 @@ async function renderHub() {
       budgetFillEl.classList.toggle('usage-budget-full', u.budget.bypass || pct >= 100);
       if (budgetLabelEl) {
         budgetLabelEl.textContent = u.budget.bypass
-          ? 'Bütçe koruması kapalı — ' + fmt(u.budget.used) + ' / ' + fmt(u.budget.max)
+          ? t('Bütçe koruması kapalı — ') + fmt(u.budget.used) + ' / ' + fmt(u.budget.max)
           : fmt(u.budget.used) + ' / ' + fmt(u.budget.max) + ' (' + pct + '%)';
       }
     }
@@ -2397,14 +2398,14 @@ async function renderHub() {
     }
     const el = $('hub-proj-list');
     if (el && !projSearchActive) {
-      if (!list || !list.length) { el.innerHTML = '<p class="muted">Proje bulunamadı — git repo\'su olan klasörler taranır.</p>'; }
+      if (!list || !list.length) { el.innerHTML = '<p class="muted">' + t('Proje bulunamadı — git repo\'su olan klasörler taranır.') + '</p>'; }
       else {
         el.innerHTML = '';
         for (const p of list.slice(0, 6)) {
           const b = document.createElement('button');
           b.className = 'proj-item';
           b.innerHTML = '<span class="proj-name">' + escapeHtml(p.name) + '</span>' +
-            '<span class="proj-meta">' + (p.changedFiles ? p.changedFiles + ' değişiklik' : 'temiz') + (p.lastCommit ? ' · ' + escapeHtml(p.lastCommit) : '') + '</span>';
+            '<span class="proj-meta">' + (p.changedFiles ? p.changedFiles + t(' değişiklik') : t('temiz')) + (p.lastCommit ? ' · ' + escapeHtml(p.lastCommit) : '') + '</span>';
           b.addEventListener('click', () => { openProjectSearch(p.name, p.dir); });
           el.appendChild(b);
         }
@@ -2422,13 +2423,13 @@ async function renderHub() {
     const wsel = $('hub-ws-list');
     if (wsel) {
       if (!ws || !ws.length) {
-        wsel.innerHTML = '<p class="muted">Henüz çalışma alanı yok — bir klasör bağla ve proje geliştirmeye başla.</p>';
+        wsel.innerHTML = '<p class="muted">' + t('Henüz çalışma alanı yok — bir klasör bağla ve proje geliştirmeye başla.') + '</p>';
       } else {
         wsel.innerHTML = ws.slice(0, 6).map((w) => {
           const icon = w.type === 'Python' ? 'python' : w.type === 'Node' ? 'nodejs' : 'folder';
           const repoBadge = w.repo
             ? '<span class="proj-meta ws-repo">' + svgIcon('refresh', 11) + ' ' + escapeHtml(w.repo.name) + '</span>'
-            : '<span class="proj-meta ws-norepo">repo yok</span>';
+            : '<span class="proj-meta ws-norepo">' + t('repo yok') + '</span>';
           return '<div class="proj-item">' +
             '<span class="proj-name">' + svgIcon(icon, 13) + ' ' + escapeHtml(w.name) + '</span>' +
             '<span class="proj-meta">' + (w.gitRepo ? '· git' : '') + (w.hasRemote ? ' · remote' : '') + '</span>' + repoBadge +
@@ -2443,7 +2444,7 @@ async function renderHub() {
     const el = $('hub-err-list');
     if (el) {
       if (!errs || !errs.length) {
-        el.innerHTML = '<p class="muted">Kayıtlı hata yok.</p>';
+        el.innerHTML = '<p class="muted">' + t('Kayıtlı hata yok.') + '</p>';
       } else {
         el.innerHTML = errs.map((e) =>
           '<div class="err-item"><span class="err-meta">' + escapeHtml(e.ts.slice(11, 19)) + ' · ' + escapeHtml(e.source) + '</span><span class="err-msg">' + escapeHtml(e.message || '').slice(0, 80) + '</span></div>'
@@ -2528,9 +2529,15 @@ async function openProjectSearch(name, dir) {
   // Dinamik eklenen metinleri otomatik çevir (EN modunda, sözlükte karşılığı varsa).
   if (LANG === 'en' && window.MutationObserver) {
     const obs = new MutationObserver((muts) => {
-      for (const m of muts) m.addedNodes.forEach((n) => { if (n.nodeType === 1) applyI18n(n); });
+      for (const m of muts) {
+        if (m.type === 'characterData') { if (m.target && m.target.parentNode) applyI18n(m.target.parentNode); continue; }
+        m.addedNodes.forEach((n) => {
+          if (n.nodeType === 1) applyI18n(n);
+          else if (n.nodeType === 3 && n.parentNode) applyI18n(n.parentNode);
+        });
+      }
     });
-    obs.observe(document.body, { childList: true, subtree: true });
+    obs.observe(document.body, { childList: true, subtree: true, characterData: true });
   }
   models = await window.assistant.models();
   for (const m of models) {
