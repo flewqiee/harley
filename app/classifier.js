@@ -9,6 +9,15 @@ const path = require('path');
 const fs = require('fs');
 const { FILES, USERPROFILE } = require('./config');
 const secureStore = require('./secure-store');
+const i18n = require('./i18n');
+let I18N_EN = {};
+try { I18N_EN = require('./locales.json').en || {}; } catch { I18N_EN = {}; }
+function T(s, vars) {
+  let out = (i18n.getLang() === 'en' && I18N_EN[s] !== undefined) ? I18N_EN[s] : s;
+  if (vars) for (const k of Object.keys(vars)) out = out.split('{' + k + '}').join(String(vars[k]));
+  return out;
+}
+const LOCALE = () => (i18n.getLang() === 'en' ? 'en-US' : 'tr-TR');
 const APPDATA = process.env.APPDATA || path.join(USERPROFILE, 'AppData', 'Roaming');
 const LOCALAPPDATA = process.env.LOCALAPPDATA || path.join(USERPROFILE, 'AppData', 'Local');
 
@@ -35,8 +44,8 @@ registerSkill({
   ],
   handler: () => {
     const now = new Date();
-    const time = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const date = now.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const time = now.toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const date = now.toLocaleDateString(LOCALE(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     return `${time} — ${date}`;
   },
 });
@@ -51,7 +60,7 @@ registerSkill({
   ],
   handler: () => {
     const now = new Date();
-    return now.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    return now.toLocaleDateString(LOCALE(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   },
 });
 
@@ -75,9 +84,9 @@ registerSkill({
       `$disk=(Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'");` +
       `$diskFree=[math]::Round($disk.FreeSpace/1GB,1);` +
       `$diskTotal=[math]::Round($disk.Size/1GB,1);` +
-      `Write-Output "CPU: $cpu% | RAM: $ramUsed/$ramTotal GB ($ramPct%) | Disk C: $diskFree/$diskTotal GB boş"`;
+      `Write-Output "CPU: $cpu% | RAM: $ramUsed/$ramTotal GB ($ramPct%) | Disk C: $diskFree/$diskTotal GB ${i18n.getLang() === 'en' ? 'free' : 'boş'}"`;
     execFile('powershell.exe', ['-NoProfile', '-Command', ps], { windowsHide: true }, (err, out) => {
-      if (err || !out) return resolve('Sistem bilgisi alınamadı.');
+      if (err || !out) return resolve(T('Sistem bilgisi alınamadı.'));
       resolve(out.trim());
     });
   }),

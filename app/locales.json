@@ -250,6 +250,11 @@
     "Kaydedilemedi.": "Could not save.",
     "GitHub — repo, commit & push, issue": "GitHub — repo, commit & push, issues",
     "Google — Takvim / Gmail / Drive / Görevler": "Google — Calendar / Gmail / Drive / Tasks",
-    "Spotify — komutla müzik başlatma": "Spotify — start music by command"
+    "Spotify — komutla müzik başlatma": "Spotify — start music by command",
+    "Harley — Hatırlatma": "Harley — Reminder",
+    "Harley — Onay gerekiyor": "Harley — Approval needed",
+    "Harley — Yeni e-posta": "Harley — New email",
+    "{n} yeni okunmamış e-posta var.": "{n} new unread emails.",
+    "Sistem bilgisi alınamadı.": "Could not read system info."
   }
 }

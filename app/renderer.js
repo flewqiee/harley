@@ -12,7 +12,7 @@ const $ = (id) => document.getElementById(id);
 
 // ---------- i18n (TR kaynak → EN) ----------
 let LANG = 'tr';
-const LOCALES = (window.assistant && window.assistant.i18n && window.assistant.i18n.locales) || { en: {} };
+const LOCALES = { en: {} };
 // t('Türkçe kaynak', {degisken}) → EN modunda çevirir; anahtar yoksa Türkçe kalır.
 function t(s, vars) {
   let out = (LANG === 'en' && LOCALES.en && LOCALES.en[s] !== undefined) ? LOCALES.en[s] : s;
@@ -38,7 +38,11 @@ function applyI18n(root) {
   scope.querySelectorAll('[title]').forEach((el) => { const v = el.getAttribute('title'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('title', tr); });
 }
 async function initLang() {
-  try { LANG = await window.assistant.i18n.lang(); } catch { LANG = 'tr'; }
+  try {
+    const d = await window.assistant.i18n.data();
+    LANG = (d && d.lang) || 'tr';
+    if (d && d.en) LOCALES.en = d.en;
+  } catch { LANG = 'tr'; }
   document.documentElement.lang = LANG;
 }
 
@@ -475,6 +479,82 @@ const GUIDE_TABS = {
       '<div class="guide-sec"><h3>Sil / yedekle</h3><p>Ayarlar → <b>Verilerim</b> bölümünden tüm yerel verini tek tıkla yedekleyebilir veya silebilirsin.</p></div>',
   },
 };
+const GUIDE_TABS_EN = {
+  baslangic: {
+    title: 'Getting Started',
+    html: '<div class="guide-sec"><h3>What can Harley do?</h3><ul class="guide-list">' +
+      '<li><b>Chat:</b> Talks naturally, answers questions, writes and explains code.</li>' +
+      '<li><b>Workspace:</b> When you pick a folder it can read/write files, run commands and tests there.</li>' +
+      '<li><b>GitHub:</b> Store projects as GitHub repos, back up changes (commit/push).</li>' +
+      '<li><b>Google:</b> Work with your calendar, email, tasks and Drive files.</li>' +
+      '<li><b>Fun:</b> Games, motivation, fun facts, song of the day.</li>' +
+      '</ul></div>' +
+      '<div class="guide-sec"><h3>Where do I start?</h3><p>Easiest: type <b>"Hello Harley"</b> in the box below. Then bind a project folder and say <b>"build a project in this folder"</b>.</p></div>',
+  },
+  proje: {
+    title: 'Building Projects',
+    html: '<div class="guide-sec"><h3>How to build a project (step by step)</h3><ol class="guide-list">' +
+      '<li><b>Bind a folder:</b> Press the <b>0/1</b> button below and pick your project folder. Harley works there.</li>' +
+      '<li><b>Set up:</b> Say "set up a React project" or "create a Python project". Harley scaffolds it.</li>' +
+      '<li><b>Develop:</b> Say "add a feature like this". Harley writes files, installs what is needed, tests.</li>' +
+      '<li><b>Push to GitHub:</b> Say "create a GitHub repo". Once you approve, your project is uploaded.</li>' +
+      '<li><b>Update:</b> As you change things say "commit and push" — approved changes are synced.</li>' +
+      '</ol><p class="guide-note">Or one command: <b>"sync everything"</b> — Harley tests, commits and pushes.</p></div>',
+  },
+  git: {
+    title: 'Git / GitHub',
+    html: '<div class="guide-sec"><h3>What are Git / GitHub? (simply)</h3><ul class="guide-list">' +
+      '<li><b>Git:</b> A system that keeps your file history. Each save = a <b>commit</b>. You can go back anytime.</li>' +
+      '<li><b>GitHub:</b> A platform that stores Git history online. Your project is backed up in the cloud.</li>' +
+      '<li><b>Commit:</b> "Save this state". Harley does it with your approval.</li>' +
+      '<li><b>Push:</b> Sending local commits to GitHub (backup).</li>' +
+      '<li><b>Pull:</b> Fetching the latest state from GitHub.</li>' +
+      '<li><b>Branch:</b> A separate copy. New features go to a branch, then merge into main — broken code never hits the main version.</li>' +
+      '</ul></div>' +
+      '<div class="guide-sec"><h3>Don\'t worry — Harley handles it</h3><p>You don\'t need to know Git commands. Just say natural things like <b>"commit", "push", "open a branch", "merge to main"</b>. Harley asks for approval; nothing happens unless you say yes.</p></div>',
+  },
+  komutlar: {
+    title: 'Commands',
+    html: '<div class="guide-sec"><h3>Common commands</h3><ul class="guide-list">' +
+      '<li><b>"Today\'s summary"</b> — calendar + email + tasks in one message</li>' +
+      '<li><b>"Show git status"</b> — which files changed</li>' +
+      '<li><b>"Commit"</b> — save changes (asks approval)</li>' +
+      '<li><b>"Push"</b> — send to GitHub (asks approval)</li>' +
+      '<li><b>"Create a repo"</b> — make the project a new GitHub repo</li>' +
+      '<li><b>"Link to a repo"</b> — connect to an existing GitHub repo</li>' +
+      '<li><b>"Sync everything"</b> — test + commit + push in one command</li>' +
+      '<li><b>"Review code"</b> — look for bugs in recent changes</li>' +
+      '<li><b>"Set up a project template"</b> — React/Python/Node scaffold</li>' +
+      '<li><b>"List issues"</b> — see GitHub tasks</li>' +
+      '</ul></div>',
+  },
+  ipuclari: {
+    title: 'Tips',
+    html: '<div class="guide-sec"><h3>For best results</h3><ul class="guide-list">' +
+      '<li><b>Be clear:</b> Specific requests like "do X in this file" work best.</li>' +
+      '<li><b>Security:</b> GitHub write actions always ask approval. Nothing is sent unless you approve.</li>' +
+      '<li><b>Auto backup:</b> Enable it in Settings and your project is backed up to the "backup" branch every 30 min.</li>' +
+      '<li><b>Token budget:</b> See token usage in Settings. When exhausted, say "reset the budget".</li>' +
+      '<li><b>Multiple projects:</b> Bind different folders in different chats; all show on the home screen.</li>' +
+      '<li><b>Errors:</b> If something goes wrong, check the "Recent Errors" panel on the home screen.</li>' +
+      '</ul></div>',
+  },
+  gizlilik: {
+    title: 'Privacy',
+    html: '<div class="guide-sec"><h3>Where is your data?</h3><ul class="guide-list">' +
+      '<li><b>Keys / memory / reminders / clipboard:</b> <code>%USERPROFILE%\\HarleyDosyalar\\</code></li>' +
+      '<li><b>Personal settings &amp; profile:</b> <code>%APPDATA%\\harley\\</code></li>' +
+      '<li><b>Code workspace:</b> <code>%USERPROFILE%\\HarleyKod\\</code></li>' +
+      '</ul><p class="guide-note">No data goes to Harley servers — there is no such server.</p></div>' +
+      '<div class="guide-sec"><h3>What leaves your machine?</h3><ul class="guide-list">' +
+      '<li>Chat goes only to the provider you choose (default: DeepSeek).</li>' +
+      '<li>Google / GitHub / Spotify work only if you connect them, with your keys.</li>' +
+      '<li>GitHub write actions (commit/push/issue) always ask for approval first.</li>' +
+      '<li>Local file writes only apply to the workspace folder you bound.</li>' +
+      '</ul></div>' +
+      '<div class="guide-sec"><h3>Delete / back up</h3><p>From Settings → <b>My data</b> you can back up or delete all your local data in one click.</p></div>',
+  },
+};
 function wireGuide() {
   const btn = $('guide-btn');
   const overlay = $('guide-overlay');
@@ -484,7 +564,8 @@ function wireGuide() {
   const open = () => { overlay.classList.remove('hidden'); renderTab('baslangic'); };
   const close = () => overlay.classList.add('hidden');
   const renderTab = (key) => {
-    const tab = GUIDE_TABS[key];
+    const TABS = (LANG === 'en') ? GUIDE_TABS_EN : GUIDE_TABS;
+    const tab = TABS[key];
     if (!tab) return;
     body.innerHTML = tab.html;
     document.querySelectorAll('.guide-tab').forEach((t) => t.classList.toggle('active', t.dataset.gtab === key));

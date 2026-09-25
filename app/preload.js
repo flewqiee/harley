@@ -1,13 +1,9 @@
 // preload.js — the only bridge between the UI and the main process.
 const { contextBridge, ipcRenderer } = require('electron');
 
-let LOCALES = { en: {} };
-try { LOCALES = require('./locales.json'); } catch { /* yok */ }
-
 contextBridge.exposeInMainWorld('assistant', {
   i18n: {
-    locales: LOCALES,
-    lang: () => ipcRenderer.invoke('i18n:lang'),
+    data: () => ipcRenderer.invoke('i18n:data'),
   },
   models: () => ipcRenderer.invoke('chat:models'),
   send: (chatInput, model, sessionId, history) =>

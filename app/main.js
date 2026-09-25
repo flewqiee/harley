@@ -29,6 +29,14 @@ const testRunner = require('./test-runner');
 const github = require('./github');
 const secureStore = require('./secure-store');
 const i18n = require('./i18n');
+let I18N_EN = {};
+try { I18N_EN = require('./locales.json').en || {}; } catch { I18N_EN = {}; }
+// Main süreçte TR kaynak → EN çeviri (kullanıcıya görünen bildirim/mesajlar için).
+function T(s, vars) {
+  let out = (i18n.getLang() === 'en' && I18N_EN[s] !== undefined) ? I18N_EN[s] : s;
+  if (vars) for (const k of Object.keys(vars)) out = out.split('{' + k + '}').join(String(vars[k]));
+  return out;
+}
 
 // Proje kökü + otomatik yazma dosyası — module scope'ta (TDZ riski olmasın).
 const PROJECT_BASE = path.resolve(PROJECTS_DIR);
@@ -662,7 +670,7 @@ async function fireReminder(message) {
   const clean = String(message || '').trim().slice(0, 300);
   // Windows bildirimi
   try {
-    new Notification({ title: 'Harley — Hatırlatma', body: clean, icon: ICON }).show();
+    new Notification({ title: T('Harley — Hatırlatma'), body: clean, icon: ICON }).show();
   } catch { /* yok */ }
   // Sesli oku (Edge → Piper yedeği)
   if (clean) {
@@ -969,7 +977,7 @@ function requestUserApproval(payload) {
         if (w !== mainWindow) try { w.webContents.send('approval:request', { id, ...payload }); } catch { /* yok */ }
       }
       // Sistem bildirimi: kullanıcı arka plandaysa görsün
-      try { new Notification('Harley — Onay gerekiyor', { body: payload.title + ': ' + (payload.message || '').split('\n')[0].slice(0, 80) }).show(); } catch { /* yok */ }
+      try { new Notification(T('Harley — Onay gerekiyor'), { body: payload.title + ': ' + (payload.message || '').split('\n')[0].slice(0, 80) }).show(); } catch { /* yok */ }
     } catch {
       clearTimeout(timer);
       _approvalWaiters.delete(id);
@@ -1666,7 +1674,7 @@ app.whenReady().then(() => {
       if (_lastEmailCount === -1) { _lastEmailCount = count; return; } // ilk ölçüm — baz al
       if (count > _lastEmailCount) {
         const fresh = count - _lastEmailCount;
-        try { new Notification('Harley — Yeni e-posta', { body: fresh + ' yeni okunmamış e-posta var.' }).show(); } catch { /* yok */ }
+        try { new Notification(T('Harley — Yeni e-posta'), { body: T('{n} yeni okunmamış e-posta var.', { n: fresh }) }).show(); } catch { /* yok */ }
       }
       _lastEmailCount = count;
     } catch { /* sessiz */ }
@@ -1957,6 +1965,7 @@ ipcMain.handle('chat:models', () => {
 
   // ---------- Dil ----------
   ipcMain.handle('i18n:lang', () => i18n.getLang());
+  ipcMain.handle('i18n:data', () => ({ lang: i18n.getLang(), en: I18N_EN }));
 
   // ---------- Güncelleme kontrolü ----------
   ipcMain.handle('app:version', () => app.getVersion());
