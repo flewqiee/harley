@@ -218,7 +218,7 @@ async function maybeShowSetup() {
   try { conn = await window.assistant.connections.status(); } catch { /* yok */ }
   try { settings = (await window.assistant.settings.get()) || {}; } catch { /* yok */ }
 
-  const hasDeepseek = !!(st.deepseek || conn.deepseek);
+  let hasDeepseek = !!(st.deepseek || conn.deepseek);
   // Zaten kuruluysa ve kullanıcı sihirbazı bitirdiyse bir daha gösterme.
   if (hasDeepseek && settings.setupDone) return;
 
