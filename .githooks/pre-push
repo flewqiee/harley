@@ -1,0 +1,21 @@
+#!/bin/sh
+# pre-push — push etmeden önce testleri çalıştırır; başarısızsa push'u engeller.
+# Etkinleştirmek için (bir kez): git config core.hooksPath .githooks
+# Atlatmak için: git push --no-verify
+
+echo "[pre-push] Testler calisiyor (node --test)..."
+if [ -d "app" ]; then
+  ( cd app && node --test )
+else
+  node --test
+fi
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "[pre-push] TESTLER BASARISIZ — push engellendi. Duzeltip tekrar dene."
+  echo "[pre-push] (Bilerek atlamak icin: git push --no-verify)"
+  exit 1
+fi
+
+echo "[pre-push] Testler gecti."
+exit 0
