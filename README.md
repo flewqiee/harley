@@ -96,9 +96,6 @@ git config core.hooksPath .githooks
 Artık her `git push` öncesi testler çalışır; başarısızsa push engellenir.
 (bilerek atlamak için: `git push --no-verify`)
 
-**CI:** `.github/workflows/ci.yml` her push/PR'da testleri çalıştırır (GitHub Actions).
-> Not: GitHub hesabında faturalandırma kilidi varsa Actions çalışmaz — Settings → Billing.
-
 ## Derleme (paketleme)
 
 ```bash
