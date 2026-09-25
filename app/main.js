@@ -1977,6 +1977,10 @@ ipcMain.handle('chat:models', () => {
   ipcMain.handle('app:openExternal', (_e, url) => {
     try { if (/^https:\/\//i.test(String(url || ''))) shell.openExternal(String(url)); return true; } catch { return false; }
   });
+  // Arayüzü main üzerinden yeniden yükle (will-navigate engeli location.reload()'u kesiyor).
+  ipcMain.handle('app:reload', () => {
+    try { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reload(); return true; } catch { return false; }
+  });
 
   function friendlyError(err) {
     const m = String((err && err.message) || err);

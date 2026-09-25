@@ -255,6 +255,17 @@
     "Harley — Onay gerekiyor": "Harley — Approval needed",
     "Harley — Yeni e-posta": "Harley — New email",
     "{n} yeni okunmamış e-posta var.": "{n} new unread emails.",
-    "Sistem bilgisi alınamadı.": "Could not read system info."
+    "Sistem bilgisi alınamadı.": "Could not read system info.",
+    "Dil değişti — yeniden yükleniyor…": "Language changed — reloading…",
+    "Kaydedildi — Harley artık bu tercihlerle konuşuyor": "Saved — Harley now uses these preferences",
+    "Kaydedilemedi": "Could not save",
+    "Yedekleniyor…": "Backing up…",
+    "Yeniden yükleniyor…": "Reloading…",
+    "Kopyalandı ✓": "Copied ✓",
+    "Dosya kaydedildi: {f}": "File saved: {f}",
+    "Kaydedilemedi: {e}": "Could not save: {e}",
+    "bilinmeyen": "unknown",
+    "Bu klasör zaten başka bir sohbete bağlı.": "This folder is already bound to another chat.",
+    "İpucu: bu klasör GitHub'da değil. \"Repo oluştur\" veya \"Repoya bağlan\" diyebilirsin.": "Tip: this folder is not on GitHub. You can say \"Create repo\" or \"Link to repo\"."
   }
 }

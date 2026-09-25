@@ -37,6 +37,11 @@ function applyI18n(root) {
   scope.querySelectorAll('[placeholder]').forEach((el) => { const v = el.getAttribute('placeholder'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('placeholder', tr); });
   scope.querySelectorAll('[title]').forEach((el) => { const v = el.getAttribute('title'); const tr = LOCALES.en[norm(v)]; if (tr !== undefined) el.setAttribute('title', tr); });
 }
+// Arayüzü yeniden yükle (will-navigate engeli location.reload'u kestiği için IPC).
+function reloadApp() {
+  try { if (window.assistant && window.assistant.appReload) { window.assistant.appReload(); return; } } catch { /* yok */ }
+  try { location.reload(); } catch { /* yok */ }
+}
 async function initLang() {
   try {
     const d = await window.assistant.i18n.data();
@@ -604,12 +609,13 @@ function fallbackCopy(text) {
 // Kısa süreli geri bildirim (toast) — kopyala/kaydet başarılı olunca.
 function showToast(msg) {
   try {
-    const t = document.createElement('div');
-    t.textContent = msg;
-    t.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:500;background:var(--ok,#6f9e5c);color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.3);opacity:0;transition:opacity .2s;';
-    document.body.appendChild(t);
-    requestAnimationFrame(() => (t.style.opacity = '1'));
-    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => { try { document.body.removeChild(t); } catch { /* yok */ } }, 250); }, 1800);
+    msg = t(msg);
+    const el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:500;background:var(--ok,#6f9e5c);color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.3);opacity:0;transition:opacity .2s;';
+    document.body.appendChild(el);
+    requestAnimationFrame(() => (el.style.opacity = '1'));
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { try { document.body.removeChild(el); } catch { /* yok */ } }, 250); }, 1800);
   } catch { /* yok */ }
 }
 // Kod bloğu kopyalama: satır numaraları olmadan ham kodu kopyalar.
@@ -619,7 +625,7 @@ window.copyCode = function (btn) {
   const clone = codeEl.cloneNode(true);
   clone.querySelectorAll('.line-num').forEach((n) => n.remove());
   copyToClipboard(clone.textContent);
-  showToast('Kopyalandı ✓');
+    showToast(t('Kopyalandı ✓'));
   if (typeof petReact === 'function') petReact('success');
   btn.textContent = 'Kopyalandı!';
   setTimeout(() => { if (btn) btn.textContent = 'Kopyala'; }, 1500);
@@ -668,12 +674,12 @@ window.writeCodeFile = async function (btn) {
   const old = btn.textContent;
   if (r && r.ok) {
     btn.textContent = 'Kaydedildi ✓'; setTimeout(() => { btn.textContent = old; }, 1500);
-    showToast('Dosya kaydedildi: ' + rel);
+    showToast(t('Dosya kaydedildi: {f}', { f: rel }));
     if (typeof petReact === 'function') petReact('celebrate');
     try { new Notification('Harley', { body: 'Dosya kaydedildi: ' + rel }).show(); } catch { /* yok */ }
   } else {
     btn.textContent = 'Hata!'; setTimeout(() => { btn.textContent = old; }, 2000);
-    showToast('Kaydedilemedi: ' + ((r && r.error) || 'bilinmeyen'));
+    showToast(t('Kaydedilemedi: {e}', { e: (r && r.error) || t('bilinmeyen') }));
     if (typeof petReact === 'function') petReact('error');
     console.error('[Harley-save]', (r && r.error) || 'bilinmeyen');
   }
@@ -741,7 +747,7 @@ function showToast(message, type) {
   }
   const toast = document.createElement('div');
   toast.className = 'toast ' + type;
-  toast.textContent = message;
+  toast.textContent = t(message);
   container.appendChild(toast);
   setTimeout(() => { if (toast.isConnected) toast.remove(); }, 3000);
 }
@@ -1317,8 +1323,8 @@ async function saveSettings() {
     refreshVoicePrefs();
     // Dil değiştiyse arayüzü yeniden yükle
     if (s.language && s.language !== _langAtOpen) {
-      status.textContent = 'Dil değişti — yeniden yükleniyor…';
-      setTimeout(() => location.reload(), 600);
+      status.textContent = t('Dil değişti — yeniden yükleniyor…');
+      setTimeout(reloadApp, 600);
       return;
     }
     status.textContent = 'Kaydedildi — Harley artık bu tercihlerle konuşuyor';
@@ -2721,6 +2727,13 @@ async function openProjectSearch(name, dir) {
 (async function init() {
   await initLang();
   applyI18n();
+  // Dinamik eklenen metinleri otomatik çevir (EN modunda, sözlükte karşılığı varsa).
+  if (LANG === 'en' && window.MutationObserver) {
+    const obs = new MutationObserver((muts) => {
+      for (const m of muts) m.addedNodes.forEach((n) => { if (n.nodeType === 1) applyI18n(n); });
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  }
   models = await window.assistant.models();
   for (const m of models) {
     const opt = document.createElement('option');
@@ -3207,7 +3220,7 @@ async function openProjectSearch(name, dir) {
       try {
         const r = await window.assistant.workspace.pick(sess.id);
         if (r && r.error === 'already_bound') {
-          showToast('Bu klasör zaten başka bir sohbete bağlı.');
+          showToast(t('Bu klasör zaten başka bir sohbete bağlı.'));
         } else if (r && r.ok) {
           let msg = 'Bağlandı: ' + r.name;
           const p = r.project;
@@ -3218,7 +3231,7 @@ async function openProjectSearch(name, dir) {
           showToast(msg);
           // Akıllı öneri: git repo + remote yoksa → repo oluştur önerisi
           if (p && p.gitRepo && !p.hasRemote && !r.repo) {
-            setTimeout(() => showToast('İpucu: bu klasör GitHub\'da değil. "Repo oluştur" veya "Repoya bağlan" diyebilirsin.'), 2500);
+            setTimeout(() => showToast(t('İpucu: bu klasör GitHub\'da değil. "Repo oluştur" veya "Repoya bağlan" diyebilirsin.')), 2500);
           }
         }
         refreshWorkspaceIndicator();
@@ -3254,7 +3267,7 @@ async function openProjectSearch(name, dir) {
       let r; try { r = await window.assistant.data.reset(); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
       if (r && r.ok) {
         try { localStorage.clear(); } catch { /* yok */ }
-        setTimeout(() => location.reload(), 900);
+        setTimeout(reloadApp, 900);
       } else {
         const el = $('settings-status');
         if (el) el.textContent = (r && r.message) || '';
