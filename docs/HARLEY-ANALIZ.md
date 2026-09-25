@@ -158,13 +158,13 @@ node'unun model alanı değiştirilir, yeni model `ollama pull` ile iner. Webhoo
 **Üç ayrı bellek katmanı var:**
 
 ### A) Kalıcı kişilik hafızası — `profile.md` (düz metin dosya)
-- Konum: `C:\Users\kuruc\AppData\Roaming\privacy-assistant-app\profile.md`
+- Konum: `%USERPROFILE%\AppData\Roaming\harley\profile.md`
 - İçerik: kullanıcının kimliği, dili, tercihleri (Türkçe zorunlu, orijinal isimleri koru vb.) — ~1.5 KB
 - **Her mesajda modele gider** (`buildProfilePayload` → system prompt'a eklenir). JSON değil, dosya.
 - Elle düzenlenir (Bellek paneli) veya ayarlardaki ad ile senkron tutulur.
 
 ### B) Otomatik hafıza — `Bellek.md` (düz metin, satır başına gerçek)
-- Konum: `C:\Users\kuruc\HarleyDosyalar\Bellek.md`
+- Konum: `%USERPROFILE%\HarleyDosyalar\Bellek.md`
 - İçerik şu an: `- Kullanıcının adı Umut.` / `- Kullanıcının GitHub kullanıcı adı: flewqiee`
 - Nasıl yazılır: her başarılı sohbetten sonra `qwen2.5:3b` ile (13 sn, temp 0.2) sohbet analiz edilir,
   "öğrenmeye değer" gerçekler çıkarılır, tekrarlar elenir, dosyaya eklenir. 90 sn'de en fazla 1 çıkarım,
@@ -316,7 +316,7 @@ Harley/                                    (geliştirme projesi)
 ├── roblox-studio/                         HarleyStudio.luau eklentisi + kurulum + tasarım şablonu
 └── *.json (workflow yedekleri)            My workflow.json, my-workflow-live.json vb.
 
-C:\Users\kuruc\
+%USERPROFILE%\
 ├── Harley\                                 KURULU UYGULAMA (722 MB)
 │   └── resources\app.asar                  Derlenmiş uygulama (Harley.exe → electron.exe + asar)
 ├── HarleyDosyalar\                         VERİ (kullanıcı dosyaları)

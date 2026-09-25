@@ -24,8 +24,8 @@ Bu rehber, Harley'i (kişisel AI asistanın) kendi başına geliştirmen için. 
 | Uygulama kaynak kodu | `app/` (main.js, renderer.js, styles.css, index.html, preload.js) |
 | n8n yönetim aracı | `n8n-ops.js` (kök dizinde) |
 | n8n API anahtarı | `n8n-api-key.txt` |
-| Kullanıcı dosyaları | `C:/Users/kuruc/HarleyDosyalar/` (Notlar.txt, Bellek.md, projeler…) |
-| Kod çalışma alanı | `C:/Users/kuruc/HarleyKod/` (script'ler) |
+| Kullanıcı dosyaları | `%USERPROFILE%/HarleyDosyalar/` (Notlar.txt, Bellek.md, projeler…) |
+| Kod çalışma alanı | `%USERPROFILE%/HarleyKod/` (script'ler) |
 | Kişisel ayarlar | `%APPDATA%/KisiselAsistan/settings.json` |
 | Bellek paneli içeriği | `%APPDATA%/KisiselAsistan/profile.md` |
 | Derlenen kurulum | `app/dist/Harley-<versiyon>.exe` |
@@ -80,8 +80,8 @@ npx electron-builder --win dir                      # win-unpacked klasörü ür
 ```
 
 - Sürümü `app/package.json`'da artır (örn. 0.7.6 → 0.7.7) — her derlemede.
-- **Kurulum (SAC güvenli):** `dist/win-unpacked` içeriğini `C:\Users\kuruc\Harley\` üzerine kopyala → `resources/app.asar` ve `app.asar.unpacked` değişir; `Harley.exe`'ye DOKUNMA (aşağıya bak).
-- Masaüstü kısayolu: hedef `C:\Users\kuruc\Harley\Harley.exe`, **argüman `resources\app.asar`**, ikon `icon.ico`.
+- **Kurulum (SAC güvenli):** `dist/win-unpacked` içeriğini `%USERPROFILE%\Harley\` üzerine kopyala → `resources/app.asar` ve `app.asar.unpacked` değişir; `Harley.exe`'ye DOKUNMA (aşağıya bak).
+- Masaüstü kısayolu: hedef `%USERPROFILE%\Harley\Harley.exe`, **argüman `resources\app.asar`**, ikon `icon.ico`.
 - **n8n güncellenirse** DeepSeek düzeltmesi ve diğer yamalar app açılışında kendini onarır (`ensureDeepSeekReasoningPatch` vb.).
 
 ## 🧪 Hızlı test komutları
@@ -106,7 +106,7 @@ node fix-workflows.js                               # 4 workflow'u onar + re-akt
 Ayarlar → **Ses motoru** seçimi: `edge` (varsayılan) / `piper` / `system`.
 
 - **Harley Sesi — Microsoft Edge neural (varsayılan):** `node-edge-tts` paketiyle Microsoft'un sinirsel Türkçe sesi (`tr-TR-EmelNeural`). Ücretsiz, anahtar yok, sınırsız, internet ister. Çok doğal — ElevenLabs kalitesinde ama 10k sınırı yok. Kod: `app/main.js` (`edgeTTS` + `tts:edge` IPC).
-- **Yerel Piper:** Çevrimdışı yedek. Runtime `C:/Users/kuruc/HarleySes/piper/` (piper.exe + `tr_TR-dfki-medium.onnx`, ASCII yolda olmalı). İlk kullanımda otomatik indirilir (~90 MB). `ensurePiper`/`piperTTS` + `tts:piper` IPC. Edge seçiliyken bile arka planda indirilir — internet yoksa otomatik devreye girer.
+- **Yerel Piper:** Çevrimdışı yedek. Runtime `%USERPROFILE%/HarleySes/piper/` (piper.exe + `tr_TR-dfki-medium.onnx`, ASCII yolda olmalı). İlk kullanımda otomatik indirilir (~90 MB). `ensurePiper`/`piperTTS` + `tts:piper` IPC. Edge seçiliyken bile arka planda indirilir — internet yoksa otomatik devreye girer.
 - **Windows sesi:** Sistem sentezi, son çare.
 - **Sesli komut (STT):** Her zaman yerel `whisper-tiny` (q8) — gizlilik öncelikli. Uygulama açılırken arka planda ön-yüklenir (ilk kullanımda beklemek yok). Kayıt ~1.4 sn sessiz kalınca otomatik biter.
 - **ElevenLabs KALDIRILDI** (v0.7.6) — API anahtarı, ses seçici ve bulut STT ayarları temizlendi. Bozuk anahtar kaydı settings.json'dan silindi.
@@ -116,7 +116,7 @@ Ayarlar → **Ses motoru** seçimi: `edge` (varsayılan) / `piper` / `system`.
 - **Tepsi modu:** Kapatma butonu uygulamayı gizler, tepsi simgesinde kalır (n8n/Ollama çalışmaya devam eder). Tepsi menüsünden "Kapat" gerçek çıkıştır (`app.isQuiting`).
 - **Hızlı çağırma:** `Ctrl+Alt+H` her yerden Harley'yi öne getirir ve **mikrofonu otomatik başlatır** — konuşmaya hemen başlayabilirsin (`global:summon` → renderer `toggleMic`).
 - **"Harley açıl":** PC Kontrol aracı `harley/asistan` hedefini tanır → pencereyi öne getirir (n8n tool açıklamasında da var).
-- **Hatırlatıcı:** n8n aracı `Hatırlatıcı` → `<zaman> | <mesaj>` (örn. `10m`, `1h30m`, `18:30`, `yarın 09:00`) → app'in `POST /remind` ucu (`127.0.0.1:59333`) → `C:/Users/kuruc/HarleyDosyalar/hatirlatmalar.json`. 15 sn'de bir kontrol; vaktinde Windows bildirimi + sesli okuma (Edge→Piper) + sohbete sistem mesajı (`reminder:fire`).
+- **Hatırlatıcı:** n8n aracı `Hatırlatıcı` → `<zaman> | <mesaj>` (örn. `10m`, `1h30m`, `18:30`, `yarın 09:00`) → app'in `POST /remind` ucu (`127.0.0.1:59333`) → `%USERPROFILE%/HarleyDosyalar/hatirlatmalar.json`. 15 sn'de bir kontrol; vaktinde Windows bildirimi + sesli okuma (Edge→Piper) + sohbete sistem mesajı (`reminder:fire`).
 - **Arka plan ön-yükleme:** Whisper modeli açılışta 4 sn sonra belleğe yüklenir (ilk mikrofon kullanımında bekleme yok).
 
 ## 🧠 Otomatik hafıza + Wake word (v0.7.12)
@@ -136,7 +136,7 @@ Harley, kullanıcının Roblox Studio'sunda Luau çalıştırabilir / script oku
 - **Proxy:** app `POST /studio/mcp` {tool, args} → 3002 `/mcp/<tool>` → `{content:[{text}]}` zarfı açılıp düz metne çevrilir.
 - **n8n aracı:** `Studio MCP` (`n8n-ops.js add-studio-mcp`) — 4 workflow'a eklendi + systemMessage'a `STUDIO MCP ÖNCELİĞİ` kuralı. Dikkat: n8n toolCode şeması tek `input` alanı üretir → jsCode `input`(string/JSON/nesne)/`tool`/`args` tüm şekilleri ayrıştırır ve proxye `{tool, args}` gönderir.
 - **Uçtan uca doğrulandı:** sohbet → DeepSeek → Studio MCP aracı → proxy → 3002 → Studio eklentisi → parçalar gerçekten oluşturuldu (kırmızı test parçası + `ObbyBaslangic` obby: 3 checkpoint + ölüm tuzağı), read-back ile doğrulandı.
-- **Pencere yok:** sunucu `ELECTRON_RUN_AS_NODE=1` ile electron binary üzerinden doğrudan spawn edilir (npx/cmd aracısı yok → cmd penceresi çıkmaz). Paket yerelde: `C:/Users/kuruc/HarleyMCP/node_modules/robloxstudio-mcp`.
+- **Pencere yok:** sunucu `ELECTRON_RUN_AS_NODE=1` ile electron binary üzerinden doğrudan spawn edilir (npx/cmd aracısı yok → cmd penceresi çıkmaz). Paket yerelde: `%USERPROFILE%/HarleyMCP/node_modules/robloxstudio-mcp`.
 - **Bağlantı paneli (UI):** sol kenar çubuğunda "Studio" çipi — her 6 sn'de `/studio/mcp-status` (execute_luau probe, `pluginConnected` güvenilmez) ile durumu gösterir: bağlı / Studio kapalı / eklenti yok / MCP yok. Tıkla → `/studio/mcp-connect` (sunucuyu başlat + Studio'yu odakla).
 - **Boş-yanıt düzeltmesi:** Bulut maxTokens 8000→16000, agent maxIterations 10→60 (`ensureWorkflowHealth` her açılışta onarır; anahtar `resources/n8n-api-key.txt`'ten okunur — deploy.bat kopyalar).
 - **Bellek düzeltmesi (v0.7.16):** Whisper artık açılışta YÜKLENMİYOR — ilk mikrofon kullanımında yüklenir ve 15 dk boşta kalınca boşaltılır; DML denemesi fp32 yerine q8 ile başlar (fp32 1.5 GB ağırlığı belleğe çekip OOM sonrası RAM bırakıyordu). Ölçüm: Harley toplam 5.3 GB → **535 MB** (10×). Ollama `OLLAMA_KEEP_ALIVE=3m` ile modelleri boşta boşaltır.
@@ -167,12 +167,12 @@ Harley, kullanıcının Roblox Studio'sunda ayrıca (klasik köprü ile) Luau ç
 Bu makinede **Smart App Control açık** ve **imzasız, özel adlı exe'leri engelliyor** — electron-builder'ın paketli exe'si (`Kişisel Asistan.exe` / `Harley.exe`) her derlemede yeni hash alır ve SAC onu "Uygulama Denetimi ilkesi bu dosyayı engelledi" ile durdurur. **Ancak** geliştirici `electron.exe` binary'si (bulut itibarı olan, imzasız ama bilinen bir dosya) **engellenmiyor**.
 
 **Çalışan çözüm — exe'yi değiştirmeden uygulamayı çalıştır:**
-- `C:\Users\kuruc\Harley\Harley.exe` = **dev `electron.exe`** (npm'deki `node_modules/electron/dist/electron.exe` kopyası). Hash sabit kaldığı için SAC hep izin verir.
+- `%USERPROFILE%\Harley\Harley.exe` = **dev `electron.exe`** (npm'deki `node_modules/electron/dist/electron.exe` kopyası). Hash sabit kaldığı için SAC hep izin verir.
 - Uygulama, kısayolun **argümanıyla** yüklenir: `Harley.exe resources\app.asar` (asar adı korunduğu için `app.asar.unpacked` native modülleri de doğru çözülür).
 - **Güncelleme:** sadece `resources/app.asar` + `app.asar.unpacked` değiştir; exe'ye dokunma → SAC sorunsuz.
 - Önceki denemeler (v0.7.5 portable, v0.7.6 klasör) o sırada çalıştı çünkü SAC yeni açılmıştı; artık yeni hash'li her imzasız exe engelleniyor.
 - Kalıcı çözüm istersen: Smart App Control'ü kapat (geri alınamaz) veya gerçek kod imzalama sertifikası al.
-- Kullanıcı verileri: `%APPDATA%/privacy-assistant-app/` (settings.json, profile.md) ve `C:/Users/kuruc/HarleyDosyalar/` (Bellek, şifreli notlar, hatırlatmalar.json).
+- Kullanıcı verileri: `%APPDATA%/harley/` (settings.json, profile.md) ve `%USERPROFILE%/HarleyDosyalar/` (Bellek, şifreli notlar, hatırlatmalar.json).
 
 ## 🔤 Fontlar
 
