@@ -707,8 +707,10 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
           <input id="conn-deepseek" type="password" placeholder="sk-..." />
           <div class="conn-actions">
             <button class="hub-quick-btn" data-conn-save="deepseek">Kaydet ve Test Et</button>
+            <button class="conn-help conn-test" data-conn-test="deepseek">Yeniden test et</button>
             <a class="conn-help" href="https://platform.deepseek.com/api_keys" target="_blank" rel="noreferrer">Anahtar nereden alınır?</a>
           </div>
+          <div class="conn-last" id="conn-last-deepseek"></div>
         </div>
         <div class="conn-card">
           <div class="conn-top"><span class="conn-name">GitHub <span class="conn-badge opt">Opsiyonel</span></span><span class="conn-status" id="conn-dot-github">—</span></div>
@@ -716,8 +718,10 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
           <input id="conn-github" type="password" placeholder="ghp_... veya github_pat_..." />
           <div class="conn-actions">
             <button class="hub-quick-btn" data-conn-save="github">Kaydet ve Test Et</button>
+            <button class="conn-help conn-test" data-conn-test="github">Yeniden test et</button>
             <a class="conn-help" href="https://github.com/settings/tokens" target="_blank" rel="noreferrer">Token nereden alınır?</a>
           </div>
+          <div class="conn-last" id="conn-last-github"></div>
         </div>
         <div class="conn-card">
           <div class="conn-top"><span class="conn-name">Spotify <span class="conn-badge opt">Opsiyonel</span></span><span class="conn-status" id="conn-dot-spotify">—</span></div>
@@ -726,8 +730,10 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
           <div class="conn-actions">
             <button class="hub-quick-btn" data-conn-save="spotify">Kaydet</button>
             <button class="hub-quick-btn" id="conn-spotify-connect">Bağlan</button>
+            <button class="conn-help conn-test" data-conn-test="spotify">Yeniden test et</button>
             <a class="conn-help" href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">Client ID nereden alınır?</a>
           </div>
+          <div class="conn-last" id="conn-last-spotify"></div>
           <div class="conn-note">Spotify uygulamanın <b>Redirect URI</b> listesine şunu ekle: <code>http://127.0.0.1:8888/callback</code></div>
         </div>
         <div class="conn-card">
@@ -738,8 +744,10 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
           <div class="conn-actions">
             <button class="hub-quick-btn" data-conn-save="google">Kaydet</button>
             <button class="hub-quick-btn" id="conn-google-connect">Bağlan</button>
+            <button class="conn-help conn-test" data-conn-test="google">Yeniden test et</button>
             <a class="conn-help" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Credentials nereden alınır?</a>
           </div>
+          <div class="conn-last" id="conn-last-google"></div>
           <div class="conn-note">OAuth istemci türü: <b>Masaüstü uygulaması</b>. Google Cloud'da Calendar, Gmail, Drive ve Tasks API'lerini etkinleştir.</div>
         </div>
       </div>

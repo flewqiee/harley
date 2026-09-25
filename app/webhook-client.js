@@ -6,6 +6,17 @@ const http = require('http');
 const fs = require('fs');
 const { FILES } = require('./config');
 
+// Kullanıcı dostu API hata metni (ham "API hatası (401)" yerine anlaşılır mesaj).
+function friendlyStatus(name, status, body) {
+  let detail = '';
+  try { const ej = JSON.parse(String(body || '').trim()); if (ej.error && ej.error.message) detail = ej.error.message; } catch { /* yok */ }
+  if (status === 401) return name + ': anahtar geçersiz (401) — Bağlantılar panelinden kontrol et.';
+  if (status === 402) return name + ': bakiye yetersiz (402) — hesabına bakiye yükle.';
+  if (status === 429) return name + ': çok fazla istek (429) — biraz sonra tekrar dene.';
+  if (status >= 500) return name + ': sunucu hatası (' + status + ') — biraz sonra tekrar dene.';
+  return name + ' API hatası (' + status + ')' + (detail ? ': ' + detail : '');
+}
+
 // Tek sohbet modeli: DeepSeek bulut. (Eski yerel Ollama modelleri kaldırıldı.)
 const WEBHOOKS = {
   'deepseek-flash': {
@@ -123,9 +134,7 @@ function streamProvider(provider, bodyObj, onChunk, timeoutMs, signal) {
           } catch { /* yok */ }
         }
         if (res.statusCode >= 400 && !gotData) {
-          let errMsg = provider.name + ' API hatası (' + res.statusCode + ')';
-          try { const ej = JSON.parse(buf.trim()); if (ej.error && ej.error.message) errMsg += ': ' + ej.error.message; } catch { /* yok */ }
-          return reject(Object.assign(new Error(errMsg), { status: res.statusCode, gotData }));
+          return reject(Object.assign(new Error(friendlyStatus(provider.name, res.statusCode, buf.trim())), { status: res.statusCode, gotData }));
         }
         resolve({ output: full, provider: provider.name, gotData });
       });
@@ -153,9 +162,7 @@ function jsonProvider(provider, bodyObj, timeoutMs, signal) {
       r.on('data', (c) => (d += c));
       r.on('end', () => {
         if (r.statusCode >= 400) {
-          let errMsg = provider.name + ' API hatası (' + r.statusCode + ')';
-          try { const ej = JSON.parse(d); if (ej.error && ej.error.message) errMsg += ': ' + ej.error.message; } catch { /* yok */ }
-          return reject(Object.assign(new Error(errMsg), { status: r.statusCode }));
+          return reject(Object.assign(new Error(friendlyStatus(provider.name, r.statusCode, d)), { status: r.statusCode }));
         }
         try { resolve(JSON.parse(d)); } catch { reject(new Error(provider.name + ' yanıtı çözümlenemedi')); }
       });
@@ -174,7 +181,7 @@ const PERSONA_TEXT = 'Sen Harley\'sin — Türkçe konuşan, samimi, pratik bir 
 
 function postDeepSeek({ chatInput, profile }, onChunk, timeoutMs = 300000, signal) {
   const provs = providers();
-  if (!provs.length) return Promise.reject(new Error('DeepSeek anahtarı yok. HarleyDosyalar/deepseek-config.json\'a "apiKey" ekle.'));
+  if (!provs.length) return Promise.reject(new Error('DeepSeek API anahtarı yok — Harley\'de sol menüdeki "Bağlantılar" panelinden ekle.'));
   const sysText = PERSONA_TEXT + (profile && profile.trim() ? '\nKULLANICI PROFİLİ:\n' + profile : '');
   const messages = [{ role: 'system', content: sysText }, { role: 'user', content: chatInput }];
   const bodyObj = { messages, stream: true, max_tokens: 8000, temperature: 0.6 };
@@ -206,7 +213,7 @@ function postDeepSeek({ chatInput, profile }, onChunk, timeoutMs = 300000, signa
 // kendine sonsuz döngüye girse bile token/mesaj patlamaz, döngü kırılır.
 function postDeepSeekTools({ model, messages, tools, executeTool, onChunk, onToolCall, onToolDone, maxLoops = 30, timeoutMs = 300000, signal, maxTokensPerCall = 3000, totalTimeMs = 240000, beforeCall, budgetHaltMessage }) {
   const provs = providers();
-  if (!provs.length) return Promise.reject(new Error('DeepSeek anahtarı yok. HarleyDosyalar/deepseek-config.json\'a "apiKey" ekle.'));
+  if (!provs.length) return Promise.reject(new Error('DeepSeek API anahtarı yok — Harley\'de sol menüdeki "Bağlantılar" panelinden ekle.'));
   // Her API çağrısında sağlayıcıları sırayla dener (failover).
   const callJsonFailover = async (bodyObj) => {
     let lastErr;

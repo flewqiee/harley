@@ -2404,6 +2404,22 @@ ipcMain.handle('chat:models', () => {
   });
 
   // ---------- Bağlantılar paneli (BYO: kendi anahtarını gir) ----------
+  // Kullanıcı dostu hata mesajları (ham "HTTP 401" yerine anlaşılır metin).
+  function friendlyNetError(e) {
+    const m = String((e && e.message) || e || '');
+    if (/ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|network/i.test(m)) return 'İnternet bağlantısı yok gibi görünüyor.';
+    if (/timeout|zaman aşımı/i.test(m)) return 'Zaman aşımı — internetini kontrol edip tekrar dene.';
+    return 'Bağlanamadı: ' + m;
+  }
+  function friendlyApiError(status, body) {
+    let detail = '';
+    try { detail = (JSON.parse(body).error && JSON.parse(body).error.message) || ''; } catch { /* yok */ }
+    if (status === 401) return 'Anahtar geçersiz (401) — kontrol et.';
+    if (status === 402) return 'Bakiye yetersiz (402) — DeepSeek hesabına bakiye yükle.';
+    if (status === 429) return 'Çok fazla istek (429) — biraz sonra tekrar dene.';
+    if (status >= 500) return 'Sunucu hatası (' + status + ') — biraz sonra tekrar dene.';
+    return 'Bağlanamadı (' + status + ')' + (detail ? ': ' + detail : '');
+  }
   function testDeepseekKey(key, model) {
     return new Promise((resolve) => {
       const body = JSON.stringify({ model: model || 'deepseek-flash', messages: [{ role: 'user', content: 'test' }], max_tokens: 3 });
@@ -2412,20 +2428,29 @@ ipcMain.handle('chat:models', () => {
         res.on('data', (c) => (d += c));
         res.on('end', () => {
           if (res.statusCode === 200) return resolve({ ok: true, message: 'Anahtar çalışıyor.' });
-          let m = 'HTTP ' + res.statusCode;
-          try { m += ': ' + JSON.parse(d).error.message; } catch { /* yok */ }
-          resolve({ ok: false, message: m });
+          resolve({ ok: false, message: friendlyApiError(res.statusCode, d) });
         });
       });
-      req.on('error', (e) => resolve({ ok: false, message: e.message }));
-      req.setTimeout(12000, () => { req.destroy(); resolve({ ok: false, message: 'Zaman aşımı.' }); });
+      req.on('error', (e) => resolve({ ok: false, message: friendlyNetError(e) }));
+      req.setTimeout(12000, () => { req.destroy(); resolve({ ok: false, message: 'Zaman aşımı — internetini kontrol edip tekrar dene.' }); });
       req.write(body);
       req.end();
     });
   }
 
+  // Servis bağlantılarının son test sonucu (Bağlantılar panelinde gösterilir).
+  function readConnTests() { try { return JSON.parse(fs.readFileSync(FILES.connectionTests, 'utf8')); } catch { return {}; } }
+  function writeConnTest(name, ok, message) {
+    try {
+      const all = readConnTests();
+      all[name] = { ts: Date.now(), ok: !!ok, message: String(message || '') };
+      fs.mkdirSync(CFG.HARLEY_DIR, { recursive: true });
+      fs.writeFileSync(FILES.connectionTests, JSON.stringify(all, null, 2), 'utf8');
+    } catch { /* yok */ }
+  }
+
   ipcMain.handle('connections:status', async () => {
-    const out = { deepseek: false, github: false, spotify: false, google: false, githubLogin: '', spotifyConfigured: false };
+    const out = { deepseek: false, github: false, spotify: false, google: false, githubLogin: '', spotifyConfigured: false, tests: readConnTests() };
     try { out.deepseek = !!(JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')).apiKey); } catch { /* yok */ }
     try { out.github = !!github.getToken(); } catch { /* yok */ }
     try { out.spotifyConfigured = !!spotifyWeb.isConfigured(); out.spotify = out.spotifyConfigured && !!spotifyWeb.hasToken(); } catch { /* yok */ }
@@ -2434,10 +2459,34 @@ ipcMain.handle('chat:models', () => {
     return out;
   });
 
+  // Kayıtlı bir bağlantıyı yeniden test et (paneldeki "Yeniden test et").
+  ipcMain.handle('connections:test', async (_e, { name } = {}) => {
+    let r;
+    if (name === 'deepseek') {
+      let key = '';
+      try { key = String(JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')).apiKey || '').trim(); } catch { /* yok */ }
+      r = key ? await testDeepseekKey(key) : { ok: false, message: 'Kayıtlı anahtar yok.' };
+    } else if (name === 'github') {
+      if (!github.getToken()) r = { ok: false, message: 'Kayıtlı token yok.' };
+      else { const u = await github.getUser(); r = (u && u.login) ? { ok: true, message: 'Bağlı: @' + u.login } : { ok: false, message: 'Token doğrulanamadı: ' + ((u && (u.message || u.error)) || 'bilinmeyen') }; }
+    } else if (name === 'spotify') {
+      try {
+        if (!spotifyWeb.isConfigured()) r = { ok: false, message: 'Client ID kayıtlı değil.' };
+        else if (!spotifyWeb.hasToken()) r = { ok: false, message: 'Henüz bağlanmadı — "Bağlan" de.' };
+        else r = { ok: true, message: 'Spotify bağlı.' };
+      } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+    } else if (name === 'google') {
+      try { await google.ensureToken(); r = { ok: true, message: 'Google bağlı.' }; } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+    } else { r = { ok: false, message: 'Bilinmeyen servis.' }; }
+    writeConnTest(name, r.ok, r.message);
+    return r;
+  });
+
   ipcMain.handle('connections:saveDeepseek', async (_e, { apiKey, model }) => {
     const key = String(apiKey || '').trim();
     if (!key) return { ok: false, message: 'Anahtar boş.' };
     const test = await testDeepseekKey(key, model);
+    writeConnTest('deepseek', test.ok, test.message);
     if (!test.ok) return test;
     try {
       fs.mkdirSync(CFG.HARLEY_DIR, { recursive: true });
@@ -2456,8 +2505,10 @@ ipcMain.handle('chat:models', () => {
       fs.writeFileSync(FILES.githubToken, t, 'utf8');
     } catch (e) { return { ok: false, message: e.message }; }
     const u = await github.getUser();
-    if (!u || u.error) return { ok: false, message: 'Token doğrulanamadı: ' + ((u && (u.message || u.error)) || 'bilinmeyen') };
-    return { ok: true, message: 'Bağlandı: ' + u.login };
+    const ok = !!(u && u.login);
+    const msg = ok ? 'Bağlandı: @' + u.login : 'Token doğrulanamadı: ' + ((u && (u.message || u.error)) || 'bilinmeyen');
+    writeConnTest('github', ok, msg);
+    return { ok, message: msg };
   });
 
   ipcMain.handle('connections:saveSpotify', async (_e, { clientId }) => {
@@ -2472,14 +2523,22 @@ ipcMain.handle('chat:models', () => {
     } catch (e) { return { ok: false, message: e.message }; }
   });
 
-  ipcMain.handle('connections:connectSpotify', () => spotifyWeb.connect());
+  ipcMain.handle('connections:connectSpotify', async () => {
+    let r; try { r = await spotifyWeb.connect(); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+    writeConnTest('spotify', !!(r && r.ok), (r && r.message) || '');
+    return r;
+  });
 
   ipcMain.handle('connections:saveGoogle', async (_e, { clientId, clientSecret }) => {
     const r = google.saveCredentials({ client_id: clientId, client_secret: clientSecret });
     return r.ok ? { ok: true, message: 'Kaydedildi. Şimdi "Bağlan" de.' } : { ok: false, message: r.message };
   });
 
-  ipcMain.handle('connections:connectGoogle', () => google.connectOAuth());
+  ipcMain.handle('connections:connectGoogle', async () => {
+    let r; try { r = await google.connectOAuth(); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+    writeConnTest('google', !!(r && r.ok), (r && r.message) || '');
+    return r;
+  });
 
   // ---------- Kod dosyaya yazma (planla-onayla-yaz temeli) ----------
   ipcMain.handle('code:writeFile', (_e, { path: relPath, content }) => {

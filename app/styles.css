@@ -2686,6 +2686,10 @@ button:active:not(:disabled), .hub-quick-btn:active, .bag-item:active, .session-
 .conn-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .conn-help { font-size: 11.5px; color: var(--accent-deep); text-decoration: none; }
 .conn-help:hover { text-decoration: underline; }
+.conn-test { background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; }
+.conn-last { font-size: 11px; color: var(--muted); }
+.conn-last.ok { color: #2e7d32; }
+.conn-last.err { color: #c0392b; }
 .conn-note { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
 .conn-note code { background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; font-size: 11px; }
 

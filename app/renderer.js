@@ -1987,6 +1987,9 @@ function wireConnections() {
   overlay.querySelectorAll('[data-conn-save]').forEach((b) => {
     b.addEventListener('click', () => saveConn(b.getAttribute('data-conn-save')));
   });
+  overlay.querySelectorAll('[data-conn-test]').forEach((b) => {
+    b.addEventListener('click', () => reTestConn(b.getAttribute('data-conn-test')));
+  });
   const spotifyConnect = $('conn-spotify-connect');
   if (spotifyConnect) spotifyConnect.addEventListener('click', async () => {
     setConnStatus('Spotify onay sayfası açılıyor…');
@@ -2034,7 +2037,31 @@ async function refreshConnStatus() {
     dot('conn-dot-github', st.github, st.githubLogin ? ('@' + st.githubLogin) : 'Bağlı ✓', 'token yok');
     dot('conn-dot-spotify', st.spotify, 'Bağlı ✓', st.spotifyConfigured ? 'Client ID var, bağlan' : 'ayarlı değil');
     dot('conn-dot-google', st.google, 'Bağlı ✓', 'ayarlı değil');
+    // Son test zamanı/sonucu
+    const tests = st.tests || {};
+    const last = (id, key) => {
+      const el = $(id);
+      if (!el) return;
+      const t = tests[key];
+      if (!t) { el.textContent = 'Henüz test edilmedi'; el.className = 'conn-last'; return; }
+      const d = new Date(t.ts);
+      const when = d.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      el.textContent = 'Son test: ' + when + ' · ' + (t.ok ? 'başarılı' : 'başarısız');
+      el.className = 'conn-last' + (t.ok ? ' ok' : ' err');
+    };
+    last('conn-last-deepseek', 'deepseek');
+    last('conn-last-github', 'github');
+    last('conn-last-spotify', 'spotify');
+    last('conn-last-google', 'google');
   } catch { /* yok */ }
+}
+
+async function reTestConn(name) {
+  setConnStatus('Test ediliyor…');
+  let r;
+  try { r = await window.assistant.connections.test(name); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+  setConnStatus(r && r.message ? r.message : (r && r.ok ? 'Bağlı.' : 'Başarısız.'));
+  refreshConnStatus();
 }
 
 async function openConnections() {

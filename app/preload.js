@@ -110,6 +110,7 @@ contextBridge.exposeInMainWorld('assistant', {
   },
   connections: {
     status: () => ipcRenderer.invoke('connections:status'),
+    test: (name) => ipcRenderer.invoke('connections:test', { name }),
     saveDeepseek: (apiKey, model) => ipcRenderer.invoke('connections:saveDeepseek', { apiKey, model }),
     saveGithub: (token) => ipcRenderer.invoke('connections:saveGithub', { token }),
     saveSpotify: (clientId) => ipcRenderer.invoke('connections:saveSpotify', { clientId }),

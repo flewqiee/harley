@@ -31,6 +31,7 @@ const FILES = {
   agentEvolution: path.join(HARLEY_DIR, 'agent-evolution.json'),
   projects: path.join(HARLEY_DIR, 'projects.json'),
   userPrefs: path.join(HARLEY_DIR, 'user-prefs.json'),
+  connectionTests: path.join(HARLEY_DIR, 'connection-tests.json'),
 };
 
 // Proje alanı (RAG, aktif proje işaretçisi)
