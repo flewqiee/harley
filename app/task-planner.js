@@ -2,8 +2,10 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { FILES } = require('./config');
+const secureStore = require('./secure-store');
 
-const TASKS_FILE = path.join(process.env.USERPROFILE || '', 'HarleyDosyalar', 'tasks.json');
+const TASKS_FILE = FILES.tasks;
 
 function readTasks() {
   try { return JSON.parse(fs.readFileSync(TASKS_FILE, 'utf8')); } catch { return { active: null, history: [] }; }
@@ -27,7 +29,7 @@ GÖREV: ${taskDescription}
 PLAN:`;
 
   let cfg = {};
-  try { cfg = JSON.parse(fs.readFileSync(path.join(process.env.USERPROFILE || '', 'HarleyDosyalar', 'deepseek-config.json'), 'utf8')); } catch { /* yok */ }
+  try { cfg = secureStore.readJson(FILES.deepseek); } catch { /* yok */ }
   const apiKey = cfg.apiKey || '';
   const body = JSON.stringify({
     model: cfg.model || model || 'deepseek-flash',

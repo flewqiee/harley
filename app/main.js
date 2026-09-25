@@ -27,6 +27,7 @@ const focusMode = require('./focus-mode');
 const projectMemory = require('./project-memory');
 const testRunner = require('./test-runner');
 const github = require('./github');
+const secureStore = require('./secure-store');
 
 // Proje kökü + otomatik yazma dosyası — module scope'ta (TDZ riski olmasın).
 const PROJECT_BASE = path.resolve(PROJECTS_DIR);
@@ -432,7 +433,7 @@ function cloudComplete(prompt, maxTokens) {
   return new Promise((resolve, reject) => {
     let cfg = {};
     try {
-      cfg = JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8'));
+      cfg = secureStore.readJson(FILES.deepseek);
     } catch { /* yok */ }
     if (!cfg.apiKey) return resolve('');
     const body = JSON.stringify({
@@ -2354,7 +2355,7 @@ ipcMain.handle('chat:models', () => {
   ipcMain.handle('status:check', () => {
     let deepseek = false;
     try {
-      deepseek = !!(JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')).apiKey);
+      deepseek = !!(secureStore.readJson(FILES.deepseek).apiKey);
     } catch { /* yok */ }
     return { deepseek };
   });
@@ -2424,7 +2425,7 @@ ipcMain.handle('chat:models', () => {
   ipcMain.handle('services:status', async () => {
     let deepseek = false;
     try {
-      deepseek = !!(JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')).apiKey);
+      deepseek = !!(secureStore.readJson(FILES.deepseek).apiKey);
     } catch { /* yok */ }
     const studio = await getMCPStatus();
     return { deepseek, studio };
@@ -2433,7 +2434,7 @@ ipcMain.handle('chat:models', () => {
   // ---------- İlk kurulum durumu (sihirbaz için) ----------
   ipcMain.handle('setup:status', async () => {
     let deepseek = false;
-    try { deepseek = !!(JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')).apiKey); } catch { /* yok */ }
+    try { deepseek = !!(secureStore.readJson(FILES.deepseek).apiKey); } catch { /* yok */ }
     let spotify = false;
     try { spotify = !!spotifyWeb.isConfigured() && !!spotifyWeb.hasToken(); } catch { spotify = false; }
     let google = false;
@@ -2492,7 +2493,7 @@ ipcMain.handle('chat:models', () => {
 
   ipcMain.handle('connections:status', async () => {
     const out = { deepseek: false, github: false, spotify: false, google: false, githubLogin: '', spotifyConfigured: false, tests: readConnTests() };
-    try { out.deepseek = !!(JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')).apiKey); } catch { /* yok */ }
+    try { out.deepseek = !!(secureStore.readJson(FILES.deepseek).apiKey); } catch { /* yok */ }
     try { out.github = !!github.getToken(); } catch { /* yok */ }
     try { out.spotifyConfigured = !!spotifyWeb.isConfigured(); out.spotify = out.spotifyConfigured && !!spotifyWeb.hasToken(); } catch { /* yok */ }
     try { out.google = google.isConfigured(); } catch { /* yok */ }
@@ -2505,7 +2506,7 @@ ipcMain.handle('chat:models', () => {
     let r;
     if (name === 'deepseek') {
       let key = '';
-      try { key = String(JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')).apiKey || '').trim(); } catch { /* yok */ }
+      try { key = String(secureStore.readJson(FILES.deepseek).apiKey || '').trim(); } catch { /* yok */ }
       r = key ? await testDeepseekKey(key) : { ok: false, message: 'Kayıtlı anahtar yok.' };
     } else if (name === 'github') {
       if (!github.getToken()) r = { ok: false, message: 'Kayıtlı token yok.' };
@@ -2530,10 +2531,9 @@ ipcMain.handle('chat:models', () => {
     writeConnTest('deepseek', test.ok, test.message);
     if (!test.ok) return test;
     try {
-      fs.mkdirSync(CFG.HARLEY_DIR, { recursive: true });
       let cur = {};
-      try { cur = JSON.parse(fs.readFileSync(FILES.deepseek, 'utf8')); } catch { /* yok */ }
-      fs.writeFileSync(FILES.deepseek, JSON.stringify({ ...cur, apiKey: key, model: model || cur.model || 'deepseek-flash' }, null, 2), 'utf8');
+      try { cur = secureStore.readJson(FILES.deepseek); } catch { /* yok */ }
+      secureStore.writeJson(FILES.deepseek, { ...cur, apiKey: key, model: model || cur.model || 'deepseek-flash' });
       return { ok: true, message: 'Kaydedildi.' };
     } catch (e) { return { ok: false, message: e.message }; }
   });
@@ -2542,8 +2542,7 @@ ipcMain.handle('chat:models', () => {
     const t = String(token || '').trim();
     if (!t) return { ok: false, message: 'Token boş.' };
     try {
-      fs.mkdirSync(path.dirname(FILES.githubToken), { recursive: true });
-      fs.writeFileSync(FILES.githubToken, t, 'utf8');
+      secureStore.writeText(FILES.githubToken, t);
     } catch (e) { return { ok: false, message: e.message }; }
     const u = await github.getUser();
     const ok = !!(u && u.login);
@@ -2556,10 +2555,9 @@ ipcMain.handle('chat:models', () => {
     const id = String(clientId || '').trim();
     if (!id) return { ok: false, message: 'Client ID boş.' };
     try {
-      fs.mkdirSync(CFG.HARLEY_DIR, { recursive: true });
       let cur = {};
-      try { cur = JSON.parse(fs.readFileSync(FILES.spotify, 'utf8')); } catch { /* yok */ }
-      fs.writeFileSync(FILES.spotify, JSON.stringify({ ...cur, clientId: id }, null, 2), 'utf8');
+      try { cur = secureStore.readJson(FILES.spotify); } catch { /* yok */ }
+      secureStore.writeJson(FILES.spotify, { ...cur, clientId: id });
       return { ok: true, message: 'Kaydedildi. Şimdi "Bağlan" de.' };
     } catch (e) { return { ok: false, message: e.message }; }
   });

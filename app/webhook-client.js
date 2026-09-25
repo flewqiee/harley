@@ -5,6 +5,7 @@
 const http = require('http');
 const fs = require('fs');
 const { FILES } = require('./config');
+const secureStore = require('./secure-store');
 
 // Kullanıcı dostu API hata metni (ham "API hatası (401)" yerine anlaşılır mesaj).
 function friendlyStatus(name, status, body) {
@@ -33,8 +34,7 @@ const WEBHOOKS = {
 // DeepSeek doğrudan API. Anahtar (kullanıcı ev klasörü)/HarleyDosyalar/deepseek-config.json içinde.
 function deepseekConfig() {
   try {
-    const raw = fs.readFileSync(FILES.deepseek, 'utf8');
-    const cfg = JSON.parse(raw);
+    const cfg = secureStore.readJson(FILES.deepseek);
     // Key fazladan whitespace/newline içeriyorsa temizle
     if (cfg.apiKey) cfg.apiKey = cfg.apiKey.trim();
     return cfg;

@@ -8,6 +8,7 @@ const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const { FILES, USERPROFILE } = require('./config');
+const secureStore = require('./secure-store');
 const APPDATA = process.env.APPDATA || path.join(USERPROFILE, 'AppData', 'Roaming');
 const LOCALAPPDATA = process.env.LOCALAPPDATA || path.join(USERPROFILE, 'AppData', 'Local');
 
@@ -568,13 +569,12 @@ registerSkill({
     const https = require('https');
     let cfg = {};
     try {
-      const raw = fs.readFileSync(FILES.deepseek, 'utf8');
-      cfg = JSON.parse(raw);
+      cfg = secureStore.readJson(FILES.deepseek);
       if (cfg.apiKey) cfg.apiKey = cfg.apiKey.trim();
     } catch {
-      return resolve('DeepSeek config dosyası bulunamadı. HarleyDosyalar/deepseek-config.json oluştur.');
+      return resolve('DeepSeek anahtarı bulunamadı — sol menüdeki "Bağlantılar" panelinden ekle.');
     }
-    if (!cfg.apiKey) return resolve('apiKey alanı boş. Config dosyasına DeepSeek API key\'ini ekle.');
+    if (!cfg.apiKey) return resolve('DeepSeek anahtarı boş — sol menüdeki "Bağlantılar" panelinden ekle.');
 
     const body = JSON.stringify({ model: cfg.model || 'deepseek-flash', messages: [{ role: 'user', content: 'test' }], max_tokens: 5 });
     const req = https.request({

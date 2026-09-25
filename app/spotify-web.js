@@ -16,6 +16,7 @@ const crypto = require('crypto');
 const urlparse = require('url');
 const { exec } = require('child_process');
 const { FILES } = require('./config');
+const secureStore = require('./secure-store');
 
 const CONFIG_FILE = FILES.spotify;
 const AUTH_HOST = 'accounts.spotify.com';
@@ -27,14 +28,14 @@ let config = null;
 function loadConfig() {
   if (config && config.clientId) return config;
   config = {};
-  try { Object.assign(config, JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))); } catch { /* yok */ }
+  try { Object.assign(config, secureStore.readJson(CONFIG_FILE)); } catch { /* yok */ }
   if (!config.clientId && process.env.SPOTIFY_CLIENT_ID) config.clientId = process.env.SPOTIFY_CLIENT_ID;
   return config;
 }
 function saveConfig(patch) {
   const c = loadConfig();
   Object.assign(c, patch);
-  try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(c, null, 2)); } catch { /* yazılamadı */ }
+  try { secureStore.writeJson(CONFIG_FILE, c); } catch { /* yazılamadı */ }
 }
 
 function req(host, pathname, method, contentType, bodyBuf, headers) {

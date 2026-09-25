@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const { exec } = require('child_process');
 const { FILES } = require('./config');
+const secureStore = require('./secure-store');
 
 const WARN = 'Google baglantisi kurulmadi. HarleyDosyalar/google-config.json icine client_id, client_secret ve refresh_token ekle.';
 
@@ -18,7 +19,7 @@ const SCOPES = [
 ];
 
 function cfg() {
-  try { return JSON.parse(fs.readFileSync(FILES.google, 'utf8')); } catch { return {}; }
+  try { return secureStore.readJson(FILES.google); } catch { return {}; }
 }
 
 let _token = { access: '', expiry: 0 };
@@ -383,8 +384,7 @@ function saveCredentials({ client_id, client_secret }) {
     const cur = cfg();
     if (client_id) cur.client_id = String(client_id).trim();
     if (client_secret) cur.client_secret = String(client_secret).trim();
-    fs.mkdirSync(require('path').dirname(FILES.google), { recursive: true });
-    fs.writeFileSync(FILES.google, JSON.stringify(cur, null, 2), 'utf8');
+    secureStore.writeJson(FILES.google, cur);
     return { ok: true };
   } catch (e) { return { ok: false, message: e.message }; }
 }
@@ -451,12 +451,12 @@ function connectOAuth() {
             return resolve({ ok: false, message: tok.error_description || 'refresh_token alınamadı. Google hesabından Harley erişimini kaldırıp tekrar dene.' });
           }
           const cur = cfg();
-          fs.writeFileSync(FILES.google, JSON.stringify({
+          secureStore.writeJson(FILES.google, {
             ...cur,
             refresh_token: tok.refresh_token,
             access_token: tok.access_token,
             expiry: Date.now() + ((tok.expires_in || 3600) - 60) * 1000,
-          }, null, 2), 'utf8');
+          });
           _token = { access: tok.access_token, expiry: Date.now() + ((tok.expires_in || 3600) - 60) * 1000 };
           resolve({ ok: true, message: 'Google bağlandı.' });
         } catch (e) {

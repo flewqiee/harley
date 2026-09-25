@@ -28,6 +28,7 @@
       "main.js",
       "preload.js",
       "config.js",
+      "secure-store.js",
       "workspace.js",
       "rag.js",
       "google.js",

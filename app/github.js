@@ -7,12 +7,13 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 const { FILES } = require('./config');
+const secureStore = require('./secure-store');
 
 const TOKEN_FILE = FILES.githubToken;
 
 function getToken() {
   try {
-    const t = fs.readFileSync(TOKEN_FILE, 'utf8').trim();
+    const t = secureStore.readText(TOKEN_FILE).trim();
     return t || null;
   } catch {
     return null;
@@ -22,7 +23,7 @@ function getToken() {
 function api(route, opts = {}) {
   // GitHub istek sayacı: usage.json'a "github" bölümüne kaydedilir (görsel takip için)
   try {
-    const uf = path.join(process.env.USERPROFILE || '', 'HarleyDosyalar', 'usage.json');
+    const uf = FILES.usage;
     let u = { github: { count: 0, today: 0, lastDay: '' }, githubDays: {} };
     try { u = JSON.parse(fs.readFileSync(uf, 'utf8')); } catch { /* yok */ }
     const g = u.github || { count: 0, today: 0, lastDay: '' };

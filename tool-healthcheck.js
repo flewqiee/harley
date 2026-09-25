@@ -79,13 +79,18 @@ const exists = (p) => { try { return fs.existsSync(p); } catch { return false; }
   t = Date.now();
   try {
     const cfgRaw = fs.readFileSync(path.join(HOME, 'HarleyDosyalar', 'deepseek-config.json'), 'utf8');
+    if (cfgRaw.trim().startsWith('{"__enc"')) {
+      // Anahtar OS şifrelemesiyle saklanıyor (Electron safeStorage) — buradan çözülemez.
+      add('DeepSeek API', 'UYARI', 'anahtar şifreli — uygulama içinden test ediliyor', Date.now() - t);
+      throw { skip: true };
+    }
     const cfg = JSON.parse(cfgRaw);
     const apiKey = (cfg.apiKey || '').trim();
     if (!apiKey) {
       add('DeepSeek API', 'HATA', 'apiKey alanı boş', Date.now() - t);
     } else {
       const https = require('https');
-      const dsBody = JSON.stringify({ model: cfg.model || 'deepseek-chat', messages: [{ role: 'user', content: 'test' }], max_tokens: 5 });
+      const dsBody = JSON.stringify({ model: cfg.model || 'deepseek-flash', messages: [{ role: 'user', content: 'test' }], max_tokens: 5 });
       const dsResult = await new Promise((resolve) => {
         const req = https.request({
           hostname: 'api.deepseek.com', path: '/chat/completions', method: 'POST',
@@ -110,8 +115,8 @@ const exists = (p) => { try { return fs.existsSync(p); } catch { return false; }
         add('DeepSeek API', 'HATA', msg.slice(0, 80), Date.now() - t);
       }
     }
-  } catch {
-    add('DeepSeek API', 'UYARI', 'deepseek-config.json bulunamadı', Date.now() - t);
+  } catch (e) {
+    if (!(e && e.skip)) add('DeepSeek API', 'UYARI', 'deepseek-config.json bulunamadı', Date.now() - t);
   }
 
   // ---------- Günün Özeti (gerçek uçtan uca) ----------
