@@ -1,0 +1,35 @@
+# Bağımlılıklar
+node_modules/
+
+# Derleme çıktıları
+dist/
+app/dist/
+/build/
+*.exe
+*.blockmap
+
+# Günlükler
+*.log
+
+# Yerel ajan/araç yapılandırması (API anahtarları içerir — commit'lenmez)
+opencode.json
+
+# Kullanıcı verileri ve gizli anahtarlar (ev klasöründe tutulur, repoda değil)
+HarleyDosyalar/
+deepseek-config.json
+google-config.json
+google-calendar-credentials.json
+google-calendar-token.json
+spotify-config.json
+services-keys.json
+user-prefs.json
+token-budget.json
+usage.json
+harley-token.txt
+github-token.txt
+websearch-key.txt
+n8n-api-key.txt
+n8n-webhook-auth.txt
+*.secret
+*.token
+.arama-cache.json

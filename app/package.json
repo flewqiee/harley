@@ -1,0 +1,71 @@
+{
+  "name": "harley",
+  "version": "0.9.0",
+  "description": "Kişisel AI asistan — bulut (DeepSeek + Google API)",
+  "author": "Umut Efe Kurucay",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "dist": "electron-builder",
+    "pack": "electron-builder --dir"
+  },
+  "dependencies": {
+    "node-edge-tts": "^1.2.10"
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.harley.assistant",
+    "productName": "Harley",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "config.js",
+      "workspace.js",
+      "rag.js",
+      "google.js",
+      "logger.js",
+      "webhook-client.js",
+      "classifier.js",
+      "fun.js",
+      "spotify.js",
+      "spotify-web.js",
+      "agent-evolution.js",
+      "project-memory.js",
+      "focus-mode.js",
+      "github.js",
+      "task-planner.js",
+      "personalization.js",
+      "test-runner.js",
+      "self-improvement.js",
+      "usage-chart.js",
+      "index.html",
+      "renderer.js",
+      "styles.css",
+      "pet/*.js",
+      "assets/**",
+      "fonts/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Harley-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Harley-${version}.${ext}"
+    }
+  }
+}

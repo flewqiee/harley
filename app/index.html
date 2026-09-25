@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; media-src 'self' data: blob:" />
+  <title>Harley</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Splash -->
+  <div id="splash">
+    <div class="splash-inner">
+      <img class="logo-img" src="assets/icon.png" alt="" />
+      <div class="spinner"></div>
+      <p class="splash-text">Harley başlatılıyor…</p>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="hidden">
+    <!-- İlk kurulum sihirbazı -->
+    <div id="setup-wizard" class="hidden">
+      <div class="sw-card">
+        <div class="sw-head">
+          <img src="assets/icon.png" alt="" class="sw-logo" />
+          <div>
+            <div class="sw-title" id="sw-title">Harley'yi hazırlayalım</div>
+            <div class="sw-sub" id="sw-sub">Sadece birkaç adım — hepsi istediğin zaman değiştirilebilir.</div>
+          </div>
+          <button id="sw-close" title="Kapat">✕</button>
+        </div>
+        <div class="sw-items" id="sw-items"></div>
+        <div class="sw-foot">
+          <span class="sw-note" id="sw-note">Her adım isteğe bağlıdır — atlayabilirsin.</span>
+          <div class="sw-actions" id="sw-actions"></div>
+        </div>
+      </div>
+    </div>
+    <aside id="sidebar">
+      <div class="side-head">
+        <img src="assets/icon.png" alt="" class="side-logo" />
+        <div class="side-brand">
+          <span class="side-title">Harley</span>
+        </div>
+        <button id="sidebar-toggle" class="sidebar-toggle" title="Menüyü daralt"></button>
+      </div>
+
+      <button id="home-btn" class="nav-btn" title="Ana menü — panolar ve hızlı erişim"></button>
+      <button id="new-chat" class="nav-btn" title="Yeni sohbet (Ctrl+N)"></button>
+      <button id="memory-btn" class="nav-btn" title="Harley'nin senin hakkında her zaman bilmesini istediklerin"></button>
+      <button id="clipboard-btn" class="nav-btn" title="Pano geçmişi — kopyaladıkların"></button>
+      <button id="evolution-btn" class="nav-btn" title="Beceriler — Harley'nin yapabildikleri ve kullanım istatistikleri"></button>
+      <button id="personalization-btn" class="nav-btn" title="Kişiselleştirme — yazma tonu, kod stili, rutin öğrenme"></button>
+      <button id="testrunner-btn" class="nav-btn" title="Test Çalıştırıcı — bağlı projede testleri çalıştır"></button>
+      <button id="connections-btn" class="nav-btn" title="Bağlantılar — DeepSeek, GitHub, Spotify, Google"></button>
+
+      <div id="session-list"></div>
+
+      <div class="studio-chip" id="studio-chip" title="Roblox Studio bağlantısı — tıkla, bağlanmayı dene">
+        <span id="studio-dot" class="dot neutral"></span>
+        <span class="studio-label">Studio</span>
+        <span id="studio-text">kontrol…</span>
+      </div>
+      <button id="focus-chip" class="focus-chip" title="Odak modu — zamanlayıcı başlat">
+        <span id="focus-dot" class="dot neutral"></span>
+        <span class="studio-label">Odak</span>
+        <span id="focus-text">başlat</span>
+      </button>
+      <div class="side-foot">
+        <span id="status-dot" class="dot neutral" title="Durum kontrol ediliyor…"></span>
+        <span id="status-text">Bağlantı kontrol ediliyor…</span>
+      </div>
+    </aside>
+
+    <section id="main">
+      <header>
+        <div class="h-left">
+          <h1 id="chat-title">Yeni Sohbet</h1>
+        </div>
+        <div class="h-right">
+          <!-- Spotify widget (tepede, ayarların solunda) -->
+          <div id="spotify-bar" class="spotify-bar hidden" title="Tıkla: Spotify'ı aç">
+            <img id="sp-cover" class="sp-cover" alt="" draggable="false" />
+            <div class="sp-mid">
+              <div class="sp-line1">
+                <span id="sp-status" class="sp-status"></span>
+                <span id="sp-track" class="sp-track">Spotify</span>
+              </div>
+              <span id="sp-artist" class="sp-artist"></span>
+              <div class="sp-progress" id="sp-progress" title="Konuma gitmek için tıkla">
+                <div class="sp-progress-bar" id="sp-progress-bar"></div>
+              </div>
+              <span class="sp-times">
+                <span id="sp-pos">0:00</span>
+                <span id="sp-dur">0:00</span>
+              </span>
+            </div>
+            <div class="sp-r">
+              <button id="sp-prev" class="sp-btn" title="Önceki"></button>
+              <button id="sp-play" class="sp-btn" title="Oynat/Duraklat"></button>
+              <button id="sp-next" class="sp-btn" title="Sonraki"></button>
+            </div>
+          </div>
+          <button id="theme-btn" title="Koyu moda geç"></button>
+          <button id="settings-btn" title="Kişisel ayarlar"></button>
+          <button id="shutdown-btn" title="Harley ve bağlı programları kapat"></button>
+          <select id="model-select" title="Model seç"></select>
+        </div>
+      </header>
+
+      <!-- Ana Menü (hub): sohbetin üst katmanı — panolar, projeler, hızlı erişim -->
+      <!-- Sohbet Arama (Ctrl+F) -->
+      <div id="chat-search" class="chat-search hidden">
+        <input id="chat-search-input" type="text" placeholder="Sohbette ara…" />
+        <span class="search-count" id="search-count"></span>
+        <div class="search-nav">
+          <button id="search-prev" title="Önceki">↑</button>
+          <button id="search-next" title="Sonraki">↓</button>
+        </div>
+        <button class="search-close" id="search-close" title="Kapat">✕</button>
+      </div>
+
+      <main id="hub" class="hidden">
+        <div class="hub-inner">
+          <div class="hub-hero">
+            <div class="hub-hero-left">
+              <h2>Merhaba <span id="hub-name">dostum</span></h2>
+              <p>Ne yapmak istersin? Bugün Harley seninle.</p>
+              <div class="hub-hero-actions">
+                <button class="hub-hero-btn" id="guide-btn"><span id="guide-btn-ic"></span> Rehber</button>
+              </div>
+            </div>
+            <div class="hub-hero-right">
+              <div id="hub-clock" class="hub-clock">--:--</div>
+              <div id="hub-date" class="hub-date"></div>
+            </div>
+          </div>
+
+          <!-- Token Dashboard: full-width ust satir -->
+          <section class="hub-card usage-dashboard" id="usage-card">
+            <div class="usage-dash-head">
+              <div class="usage-cost">
+                <span class="usage-cost-label">Toplam Token</span>
+                <b class="usage-cost-value" id="usage-total">—</b>
+              </div>
+              <div class="usage-dash-tabs">
+                <button class="usage-tab active" data-utab="tokens">Tokenlar</button>
+                <button class="usage-tab" data-utab="requests">İstekler</button>
+                <button class="usage-tab" data-utab="github">GitHub</button>
+              </div>
+            </div>
+            <div class="usage-chart-wrap">
+              <canvas id="usage-canvas"></canvas>
+            </div>
+            <div class="usage-dash-footer">
+              <div class="usage-stat"><span>API İstekleri</span><b id="usage-req-count">—</b></div>
+              <div class="usage-stat"><span>GitHub İstekleri</span><b id="usage-gh-count">—</b> <small class="usage-sub" id="usage-gh-today"></small></div>
+              <div class="usage-stat"><span>Tokenlar</span><b id="usage-token-count">—</b></div>
+              <div class="usage-stat"><span>Ortalama</span><b id="usage-avg">—</b></div>
+            </div>
+            <div class="usage-budget">
+              <div class="usage-budget-head">
+                <span>Token Bütçesi</span>
+                <b id="usage-budget-label">—</b>
+              </div>
+              <div class="usage-budget-bar">
+                <div class="usage-budget-fill" id="usage-budget-fill"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Alt satir: 2 kolonlu grid -->
+          <div class="hub-grid">
+            <!-- Kart: Çalışma Alanları (bağlı klasörler + repo) -->
+            <section class="hub-card" id="workspaces-card">
+              <div class="hub-card-head">
+                <span class="hub-card-ic" id="ic-workspaces"></span>
+                <h3>Çalışma Alanları</h3>
+                <button class="hub-card-action" data-action="workspaces">Detay</button>
+              </div>
+              <div class="proj-list" id="hub-ws-list"><p class="muted">Taranıyor…</p></div>
+            </section>
+
+            <!-- Kart: Projeler (RAG) -->
+            <section class="hub-card" id="projects-card">
+              <div class="hub-card-head">
+                <span class="hub-card-ic" id="ic-projects"></span>
+                <h3>Projeler</h3>
+                <button class="hub-card-action" data-action="projects">Detay</button>
+              </div>
+              <div class="proj-list" id="hub-proj-list"><p class="muted">Taranıyor…</p></div>
+            </section>
+
+            <!-- Kart: Hazir sorular (kategorili) -->
+            <section class="hub-card" id="prompts-card">
+              <div class="hub-card-head">
+                <span class="hub-card-ic" id="ic-prompts"></span>
+                <h3>Hazır Sorular</h3>
+                <button class="hub-card-action" data-action="prompts">Tümü</button>
+              </div>
+              <div class="bag-cats" id="hub-prompts"></div>
+            </section>
+          </div>
+
+          <!-- Ucuncu satir: ozet + hizli erisim -->
+          <div class="hub-grid">
+            <section class="hub-card" id="ozet-card">
+              <div class="hub-card-head"><span class="hub-card-ic" id="ic-ozet"></span><h3>Günün Özeti</h3></div>
+              <p class="ozet-preview" id="hub-ozet-preview">Takvim, e-postalar, görevler ve hava durumu tek bakışta.</p>
+              <button class="hub-quick-btn hub-ozet-btn" data-action="summary">Özeti getir</button>
+            </section>
+            <section class="hub-card" id="quick-card">
+              <div class="hub-card-head"><span class="hub-card-ic" id="ic-quick"></span><h3>Hızlı Erişim</h3></div>
+              <div class="hub-quick">
+                <button class="hub-quick-btn" data-action="focus">Odak Modu</button>
+                <button class="hub-quick-btn" data-action="evolution">Beceriler</button>
+                <button class="hub-quick-btn" data-action="memory">Bellek</button>
+                <button class="hub-quick-btn" data-action="clipboard">Pano</button>
+                <button class="hub-quick-btn" data-action="chat">Sohbete Geç</button>
+              </div>
+            </section>
+
+            <!-- Kart: Son Hatalar (diagnostik) -->
+            <section class="hub-card" id="errors-card">
+              <div class="hub-card-head">
+                <span class="hub-card-ic" id="ic-errors"></span>
+                <h3>Son Hatalar</h3>
+                <button class="hub-card-action" data-action="errors" id="errors-refresh">Yenile</button>
+              </div>
+              <div class="err-list" id="hub-err-list"><p class="muted">Yükleniyor…</p></div>
+            </section>
+          </div>
+        </div>
+      </main>
+
+      <main id="messages"></main>
+
+      <!-- Desktop Pet (Harley 2.0 — state machine, AI değil) -->
+      <div id="pet" class="pet hidden" data-state="idle" title="Harley">
+        <div id="pet-bubble" class="pet-bubble hidden" role="status" aria-live="polite">
+          <span class="pet-bubble__text"></span>
+          <span class="pet-bubble__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        </div>
+        <div id="pet-body" class="pet-body">
+          <!-- müzik çalarken görünür: kulaklık + notalar (CSS .pet.music ile) -->
+          <div class="harley-headphones" aria-hidden="true">
+            <svg viewBox="0 0 84 38" width="74" height="33">
+              <path d="M7 24 C7 5 77 5 77 24" fill="none" stroke="#2c1c12" stroke-width="5" stroke-linecap="round"/>
+              <rect x="0" y="18" width="15" height="19" rx="7" fill="#2c1c12"/>
+              <rect x="69" y="18" width="15" height="19" rx="7" fill="#2c1c12"/>
+              <rect x="3.5" y="22" width="8" height="12" rx="4" fill="#e5823d"/>
+              <rect x="72.5" y="22" width="8" height="12" rx="4" fill="#e5823d"/>
+            </svg>
+          </div>
+          <div class="harley-notes" aria-hidden="true"><i>♪</i><i>♫</i><i>♪</i></div>
+          <svg class="harley" viewBox="0 0 120 132" width="64" height="70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <ellipse class="harley-shadow" cx="60" cy="121" rx="27" ry="5"/>
+            <g class="harley-body-group">
+              <path class="harley-tail" d="M83,104 C107,101 114,76 100,58 C93,49 82,52 83,63 C84,71 93,74 98,67" fill="none" stroke-linecap="round"/>
+              <path class="harley-torso" d="M32,116 C27,88 35,64 60,63 C85,64 93,88 88,116 C88,123 32,123 32,116 Z"/>
+              <path class="harley-chest" d="M60,80 C70,80 76,92 74,106 C73,114 47,114 46,106 C44,92 50,80 60,80 Z"/>
+              <g class="harley-paws">
+                <ellipse class="harley-paw" cx="47" cy="114" rx="9" ry="7"/>
+                <ellipse class="harley-paw" cx="73" cy="114" rx="9" ry="7"/>
+                <path class="harley-toes" d="M43,111 L43,117 M47,110 L47,117 M51,111 L51,117"/>
+                <path class="harley-toes" d="M69,111 L69,117 M73,110 L73,117 M77,111 L77,117"/>
+              </g>
+            </g>
+            <g class="harley-head-group">
+              <g class="harley-ear harley-ear--left">
+                <path class="harley-ear-outer" d="M30,34 C25,19 34,7 47,17 C45,26 38,32 30,34 Z"/>
+                <path class="harley-ear-inner" d="M33,29 C31,20 36,13 43,18 C41,23 37,27 33,29 Z"/>
+              </g>
+              <g class="harley-ear harley-ear--right">
+                <path class="harley-ear-outer" d="M90,34 C95,19 86,7 73,17 C75,26 82,32 90,34 Z"/>
+                <path class="harley-ear-inner" d="M87,29 C89,20 84,13 77,18 C79,23 83,27 87,29 Z"/>
+              </g>
+              <path class="harley-face" d="M60,17 C79,17 92,31 90,49 C89,61 78,71 60,71 C42,71 31,61 30,49 C28,31 41,17 60,17 Z"/>
+              <path class="harley-muzzle" d="M60,50 C71,50 76,58 73,65 C70,70 50,70 47,65 C44,58 49,50 60,50 Z"/>
+              <path class="harley-brow harley-brow--left" d="M41,37 Q48,34 54,37"/>
+              <path class="harley-brow harley-brow--right" d="M66,37 Q72,34 79,37"/>
+              <g class="harley-eye harley-eye--left" style="--eye-x:48; --eye-y:45">
+                <ellipse class="harley-iris" cx="48" cy="45" rx="6.4" ry="7.2"/>
+                <ellipse class="harley-pupil" cx="48" cy="45" rx="2.1" ry="5.6"/>
+                <circle class="harley-glint" cx="46" cy="42" r="1.3"/>
+              </g>
+              <g class="harley-eye harley-eye--right" style="--eye-x:72; --eye-y:45">
+                <ellipse class="harley-iris" cx="72" cy="45" rx="6.4" ry="7.2"/>
+                <ellipse class="harley-pupil" cx="72" cy="45" rx="2.1" ry="5.6"/>
+                <circle class="harley-glint" cx="70" cy="42" r="1.3"/>
+              </g>
+              <path class="harley-nose" d="M57,55 L63,55 L60,59 Z"/>
+              <path class="harley-mouth" d="M60,59 C60,62 56,64 52,63 M60,59 C60,62 64,64 68,63"/>
+              <g class="harley-whiskers harley-whiskers--left">
+                <path d="M32,52 L14,49 M32,56 L13,56 M32,60 L14,63"/>
+              </g>
+              <g class="harley-whiskers harley-whiskers--right">
+                <path d="M88,52 L106,49 M88,56 L107,56 M88,60 L106,63"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Task Planner Paneli -->
+      <div id="task-panel" class="hidden">
+        <div class="task-head">
+          <div class="task-title" id="task-title"></div>
+          <button id="task-close" title="Kapat">✕</button>
+        </div>
+        <div class="task-steps" id="task-steps"></div>
+        <div class="task-progress">
+          <div class="task-progress-bar" id="task-progress-bar"></div>
+        </div>
+        <div class="task-footer">
+          <span id="task-count">0/0</span>
+          <button id="task-cancel" class="task-cancel-btn">İptal</button>
+        </div>
+      </div>
+
+      <!-- Inline step tracker + tool indicator -->
+      <div id="inline-tracker" class="hidden">
+        <div class="tracker-bar">
+          <div class="tracker-progress" id="tracker-progress"></div>
+        </div>
+        <div class="tracker-steps" id="tracker-steps"></div>
+      </div>
+      <div id="tool-indicator" class="hidden">
+        <div class="tool-spinner"></div>
+        <span id="tool-name"></span>
+      </div>
+
+      <footer>
+        <input type="file" id="file-input" hidden />
+        <div id="bag-popover-work" class="bag-popover hidden">
+          <div class="bag-head"><span class="bag-gi" id="bag-gi-work"></span>İş / Proje <small>Ctrl+B</small></div>
+          <div class="bag-groups">
+            <div class="bag-group">
+              <button class="bag-item" data-q="Bana günün özetini çıkar">Günün özetini çıkar</button>
+              <button class="bag-item" data-q="Okunmamış e-postalarım neler?">Okunmamış e-postalarım</button>
+              <button class="bag-item" data-q="Görevlerimin durumu ne?">Görevlerim</button>
+              <button class="bag-item" data-q="Bugün 14:00'e 30 dakikalık bir toplantı ekle">Takvime etkinlik ekle</button>
+              <button class="bag-item" data-q="Projelerimin son durumunu özetle">Proje durumunu özetle</button>
+              <button class="bag-item" data-q="Google Drive'daki &quot;Yoklama&quot; dosyasını özetle">Drive dosyasını özetle</button>
+            </div>
+          </div>
+        </div>
+        <div id="bag-popover-git" class="bag-popover hidden">
+          <div class="bag-head"><span class="bag-gi" id="bag-gi-git"></span>Proje / Git <small>Ctrl+Alt+B</small></div>
+          <div class="bag-groups">
+            <div class="bag-group">
+              <button class="bag-item" data-q="git_status aracıyla çalışma klasörünün durumunu göster">Git durumunu göster</button>
+              <button class="bag-item" data-q="git_diff ile son değişiklikleri göster">Değişiklikleri göster</button>
+              <button class="bag-item" data-q="Tüm değişiklikleri commit et (git_commit), mantıklı bir mesaj yaz">Commit et</button>
+              <button class="bag-item" data-q="Commit'leri GitHub'a push et (git_push)">Push et</button>
+              <button class="bag-item" data-q="Bu klasörü GitHub'da yeni repo yap (git_create_repo)">Repo oluştur</button>
+              <button class="bag-item" data-q="Bu klasörü mevcut bir GitHub repoya bağla (git_link_repo)">Repoya bağlan</button>
+              <button class="bag-item" data-q="git_branch ile yeni bir branch oluştur ve ona geç">Yeni branch</button>
+              <button class="bag-item" data-q="scaffold_project ile bir proje şablonu kur (React)">Proje şablonu kur</button>
+              <button class="bag-item" data-q="github_issues ile bağlı reponun açık issue'larını listele">Issue'ları listele</button>
+              <button class="bag-item" data-q="generate_docs ile README ve CHANGELOG oluştur">Doküman üret</button>
+            </div>
+          </div>
+        </div>
+        <div id="bag-popover-fun" class="bag-popover hidden">
+          <div class="bag-head"><span class="bag-gi" id="bag-gi-fun"></span>Eğlence / Farklılık <small>Ctrl+Shift+B</small></div>
+          <div class="bag-groups">
+            <div class="bag-group">
+              <button class="bag-item" data-q="Bir oyun oynayalım (Sayı Tahmin)">Bir oyun başlat</button>
+              <button class="bag-item" data-q="Kelime Avı oyunu oyna">Kelime Avı</button>
+              <button class="bag-item" data-q="20 Soru oynayalım">20 Soru</button>
+              <button class="bag-item" data-q="Şehir-Ülke-Meyve oyna">Şehir-Ülke-Meyve</button>
+              <button class="bag-item" data-q="Bir hikâye tamamlayalım">Hikâye tamamla</button>
+              <button class="bag-item" data-q="Bana günlük motivasyon ver">Günlük motivasyon</button>
+              <button class="bag-item" data-q="İlginç bir bilgi söyle">İlginç bir bilgi</button>
+              <button class="bag-item" data-q="Bugünün şarkısı ne?">Günün şarkısı</button>
+            </div>
+          </div>
+        </div>
+        <!-- Dosya önizleme (input'un üstünde) -->
+        <div id="file-preview" class="file-preview hidden">
+          <div class="file-preview-inner" id="file-preview-inner"></div>
+        </div>
+        <div class="footer-row">
+          <button id="bag-btn-work" class="bag-btn" title="İş / Proje (Ctrl+B)"></button>
+          <button id="bag-btn-fun" class="bag-btn" title="Eğlence (Ctrl+Shift+B)"></button>
+          <button id="bag-btn-git" class="bag-btn" title="Proje / Git (Ctrl+Alt+B)"></button>
+          <button id="tts-btn" title="Sesli yanıt: kapalı"></button>
+          <button id="attach-btn" title="Dosya ekle — içeriğini Harley'ye ver"></button>
+          <button id="ws-btn" class="ws-btn" title="Bu sohbete çalışma klasörü bağla">
+            <span class="ws-ic" id="ws-ic"></span>
+            <span class="ws-label" id="ws-badge">0/1</span>
+          </button>
+          <textarea id="input" rows="1"
+            placeholder="Bir şey sor… (Enter: gönder, Shift+Enter: yeni satır)"></textarea>
+          <button id="send" title="Gönder"></button>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <!-- Settings panel -->
+  <div id="settings-overlay" class="hidden">
+    <div class="settings-panel">
+      <div class="settings-head">
+        <h2>Kişisel Ayarlar</h2>
+        <button id="settings-close" title="Kapat">✕</button>
+      </div>
+      <p class="settings-hint">
+        Harley'nin sana nasıl hitap ettiğini, cevaplarının tarzını ve varsayılan modelini
+        buradan belirle — her sohbette otomatik uygulanır.
+      </p>
+      <div class="settings-grid">
+        <label class="set-field">
+          <span>Adın</span>
+          <input id="set-name" type="text" placeholder="örn. Ayşe" />
+        </label>
+        <label class="set-field">
+          <span>Sana nasıl hitap etsin?</span>
+          <input id="set-address" type="text" placeholder="örn. Ayşe, abi, kanka…" />
+        </label>
+        <label class="set-field">
+          <span>Cevap tarzı</span>
+          <select id="set-style">
+            <option value="kısa">Kısa ve öz</option>
+            <option value="orta">Doğal (dengeli)</option>
+            <option value="detaylı">Detaylı ve kapsamlı</option>
+          </select>
+        </label>
+        <label class="set-field">
+          <span>Varsayılan model</span>
+          <select id="set-model"></select>
+        </label>
+        <label class="set-field">
+          <span>Görünüm</span>
+          <select id="set-theme">
+            <option value="light">Aydınlık</option>
+            <option value="dark">Koyu</option>
+          </select>
+        </label>
+        <label class="set-field set-check">
+          <input id="set-emoji" type="checkbox" />
+          <span>Emoji kullanabilsin</span>
+        </label>
+        <label class="set-field set-check">
+          <input id="set-automemory" type="checkbox" />
+          <span>Otomatik hafıza <small>(her sohbette seni öğrenir)</small></span>
+        </label>
+        <label class="set-field set-check">
+          <input id="set-meow" type="checkbox" />
+          <span>Kedi sesi <small>(tıklayınca miyavlasın)</small></span>
+        </label>
+        <label class="set-field">
+          <span>Şehir <small>(hava durumu için)</small></span>
+          <input id="set-city" type="text" placeholder="örn. İstanbul" />
+        </label>
+        <label class="set-field set-check">
+          <input id="set-morning" type="checkbox" />
+          <span>Günaydın rutini <small>(açılışta hava durumu + günün özetini sesli söyler, günde bir)</small></span>
+        </label>
+        <label class="set-field set-check">
+          <input id="set-autobackup" type="checkbox" />
+          <span>Otomatik yedekleme <small>(her 30 dk'da değişiklikleri "backup" branch'ine commit+push eder)</small></span>
+        </label>
+        <label class="set-field set-check">
+          <input id="set-email" type="checkbox" />
+          <span>E-posta bildirimi <small>(yeni okunmamış e-posta gelince masaüstü bildirimi gösterir)</small></span>
+        </label>
+        <label class="set-field set-full">
+          <span>Ses motoru</span>
+          <select id="set-tts-engine">
+            <option value="edge">Harley Sesi — Microsoft neural (ücretsiz, internet ister, en doğal)</option>
+            <option value="piper">Yerel Piper (ücretsiz, çevrimdışı)</option>
+            <option value="system">Windows sesi</option>
+          </select>
+          <small>İnternet yoksa Harley otomatik olarak yerel Piper'a geçer.</small>
+        </label>
+      </div>
+      <div class="settings-foot">
+        <span id="settings-status"></span>
+        <button id="settings-save">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clipboard panel -->
+  <div id="clipboard-overlay" class="hidden">
+    <div class="clipboard-panel">
+      <div class="clipboard-head">
+        <h2>Pano Geçmişi</h2>
+        <div class="clipboard-head-actions">
+          <button id="clipboard-clear" title="Geçmişi temizle"></button>
+          <button id="clipboard-close" title="Kapat">✕</button>
+        </div>
+      </div>
+      <p class="clipboard-hint">
+        Kopyaladığın son metinler burada. Birini kopyala, sohbete gönder,
+        özetlet veya çevirt — Harley anında halletsin.
+      </p>
+      <div id="clipboard-list"></div>
+    </div>
+  </div>
+
+  <!-- Memory panel -->
+  <div id="memory-overlay" class="hidden">
+    <div class="memory-panel">
+      <div class="memory-head">
+        <h2>Harley'nin Belleği</h2>
+        <button id="memory-close" title="Kapat">✕</button>
+      </div>
+      <p class="memory-hint">
+        Buraya Harley'nin senin hakkında <b>her zaman</b> bilmesini istediğin şeyleri yaz —
+        adın, tarzın, projelerin, hedeflerin, alışkanlıkların. Her sohbette otomatik kullanır.
+      </p>
+      <textarea id="memory-input" spellcheck="false"
+        placeholder="Örnek:
+Benim adım Ayşe.
+Sabahları enerjik olurum, kahvemi sütsüz içerim.
+Roblox oyunları geliştiriyorum.
+Bana kısa ve samimi cevap ver, resmi konuşma.
+İngilizce oyun isimlerini Türkçeleştirme."></textarea>
+      <div class="memory-foot">
+        <span id="memory-status"></span>
+        <button id="memory-save">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Focus Mode panel -->
+  <div id="focus-overlay" class="hidden">
+    <div class="focus-panel">
+      <div class="focus-head">
+        <h2>Odak Modu</h2>
+        <button id="focus-close" title="Kapat">✕</button>
+      </div>
+      <div id="focus-start">
+        <p class="focus-hint">Zamanlayıcıyı başlat — Harley bu süre boyunca aktif projeni takip eder, bitince özet çıkarır.</p>
+        <div class="focus-grid">
+          <label class="set-field"><span>Proje</span><input id="focus-project" type="text" placeholder="örn. Roblox" /></label>
+          <label class="set-field"><span>Hedef</span><input id="focus-goal" type="text" placeholder="örn. RoundManager'ı bitir" /></label>
+        </div>
+        <div class="focus-quick" id="focus-quick"></div>
+        <div class="focus-row">
+          <label class="set-field"><span>Süre</span>
+            <select id="focus-minutes">
+              <option value="15">15 dk</option>
+              <option value="25" selected>25 dk</option>
+              <option value="45">45 dk</option>
+              <option value="60">60 dk</option>
+              <option value="90">90 dk</option>
+            </select>
+          </label>
+          <button id="focus-go" class="focus-go">Başlat</button>
+        </div>
+      </div>
+      <div id="focus-run" class="hidden">
+        <div class="focus-run-head">
+          <div class="focus-proj" id="focus-run-proj"></div>
+          <div class="focus-goal-line" id="focus-run-goal"></div>
+        </div>
+        <div class="focus-ring-wrap" id="focus-ring-wrap">
+          <svg class="focus-ring" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="focus-ring-track" cx="60" cy="60" r="52"></circle>
+            <circle class="focus-ring-fill" id="focus-ring-fill" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="focus-timer" id="focus-timer">25:00</div>
+        </div>
+        <div class="focus-meta" id="focus-meta">0 dk geçti · 25 dk kaldı</div>
+        <div class="focus-actions">
+          <button id="focus-pause" class="focus-go">Duraklat</button>
+          <button id="focus-stop" class="focus-stop">Bitir</button>
+        </div>
+        <div id="focus-summary" class="focus-summary hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Evolution panel -->
+  <div id="evolution-overlay" class="hidden">
+    <div class="evolution-panel">
+      <div class="evolution-head">
+        <h2>Harley'nin Evrimi</h2>
+        <button id="evolution-close" title="Kapat">✕</button>
+      </div>
+      <p class="evolution-hint">Harley'nin şu anki becerileri — basit istekler AI çağrılmadan yerelde çözülür.</p>
+      <div id="evolution-skills" class="skill-chips"></div>
+      <p class="evolution-hint" style="margin-top:8px">Kullanım istatistikleri — Harley zamanla sana göre şekillenir.</p>
+      <div id="evolution-stats"></div>
+      <div id="evolution-suggest"></div>
+    </div>
+  </div>
+
+  <!-- Personalization panel (gizlilik-öncelikli profil, stil, rutin) -->
+  <div id="personalization-overlay" class="hidden">
+    <div class="settings-panel">
+      <div class="settings-head">
+        <h2>Kişiselleştirme</h2>
+        <button id="personalization-close" title="Kapat">✕</button>
+      </div>
+      <p class="settings-hint">
+        Harley sana göre şekillenir: yazma tonu, kod stili ve rutinlerin.
+        <b>Adın ve hitap</b> "Kişisel Ayarlar" bölümünde.
+      </p>
+      <div class="settings-grid">
+        <label class="set-field">
+          <span>Yazma tonu</span>
+          <select id="p-tone">
+            <option value="professional-friendly">Profesyonel + samimi</option>
+            <option value="formal">Resmî</option>
+            <option value="casual">Günlük / rahat</option>
+            <option value="technical">Teknik</option>
+          </select>
+        </label>
+        <label class="set-field">
+          <span>Ayrıntı seviyesi</span>
+          <select id="p-verbosity">
+            <option value="balanced">Dengeli</option>
+            <option value="concise">Kısa</option>
+            <option value="verbose">Detaylı</option>
+          </select>
+        </label>
+        <label class="set-field">
+          <span>Cevap yapısı</span>
+          <select id="p-structure">
+            <option value="direct">Doğrudan</option>
+            <option value="guided">Adım adım</option>
+            <option value="reference">Referans kartı</option>
+          </select>
+        </label>
+        <label class="set-field">
+          <span>Kod girintisi</span>
+          <select id="p-indent">
+            <option value="2">2 boşluk</option>
+            <option value="4">4 boşluk</option>
+            <option value="8">Tab (8)</option>
+          </select>
+        </label>
+        <label class="set-field">
+          <span>Tırnak stili</span>
+          <select id="p-quotes">
+            <option value="single">Tek tırnak '</option>
+            <option value="double">Çift tırnak "</option>
+          </select>
+        </label>
+        <label class="set-field">
+          <span>Noktalı virgül</span>
+          <select id="p-semicolons">
+            <option value="true">Kullan</option>
+            <option value="false">Kullanma</option>
+          </select>
+        </label>
+        <label class="set-field set-full">
+          <span>İlgi alanların <small>(virgülle ayır)</small></span>
+          <input id="p-interests" type="text" placeholder="örn. Roblox, yapay zeka, futbol" />
+        </label>
+      </div>
+      <div class="p-insights">
+        <div class="p-insights-head">
+          <span>Rutin analizi</span>
+          <button id="p-analyze" class="hub-quick-btn">Analiz et</button>
+        </div>
+        <div id="p-insights-body" class="p-insights-body">
+          <p class="muted">Harley kullanımını öğrendikçe burada öneriler görünür.</p>
+        </div>
+      </div>
+      <div class="settings-foot">
+        <span id="personalization-status"></span>
+        <button id="personalization-save">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Runner panel -->
+  <div id="testrunner-overlay" class="hidden">
+    <div class="settings-panel">
+      <div class="settings-head">
+        <h2>Test Çalıştırıcı</h2>
+        <button id="testrunner-close" title="Kapat">✕</button>
+      </div>
+      <p class="settings-hint">
+        Bağlı çalışma klasöründeki testleri algılar ve çalıştırır (Jest, Vitest, Mocha, pytest, cargo, go).
+        Push öncesi testler başarısızsa gönderim engellenir.
+      </p>
+      <div id="tr-config" class="tr-config"><p class="muted">Klasör bağlı değil veya taranıyor…</p></div>
+      <div class="tr-actions">
+        <button id="tr-run" class="hub-quick-btn">Testleri Çalıştır</button>
+        <button id="tr-coverage" class="hub-quick-btn">Coverage</button>
+        <button id="tr-gate" class="hub-quick-btn">Push Öncesi Kontrol</button>
+      </div>
+      <div id="tr-result" class="tr-result hidden"></div>
+    </div>
+  </div>
+
+  <!-- Bağlantılar paneli (BYO: kendi anahtarını gir) -->
+  <div id="connections-overlay" class="hidden">
+    <div class="settings-panel">
+      <div class="settings-head">
+        <h2>Bağlantılar</h2>
+        <button id="connections-close" title="Kapat">✕</button>
+      </div>
+      <p class="settings-hint">Her servisi kendi anahtarınla bağla. Tüm bilgiler yalnızca bu bilgisayarda saklanır.</p>
+      <div class="conn-list">
+        <div class="conn-card">
+          <div class="conn-top"><span class="conn-name">DeepSeek (sohbet)</span><span class="conn-status" id="conn-dot-deepseek">—</span></div>
+          <input id="conn-deepseek" type="password" placeholder="sk-..." />
+          <div class="conn-actions">
+            <button class="hub-quick-btn" data-conn-save="deepseek">Kaydet ve Test Et</button>
+            <a class="conn-help" href="https://platform.deepseek.com/api_keys" target="_blank" rel="noreferrer">Anahtar nereden alınır?</a>
+          </div>
+        </div>
+        <div class="conn-card">
+          <div class="conn-top"><span class="conn-name">GitHub</span><span class="conn-status" id="conn-dot-github">—</span></div>
+          <input id="conn-github" type="password" placeholder="ghp_... veya github_pat_..." />
+          <div class="conn-actions">
+            <button class="hub-quick-btn" data-conn-save="github">Kaydet ve Test Et</button>
+            <a class="conn-help" href="https://github.com/settings/tokens" target="_blank" rel="noreferrer">Token nereden alınır?</a>
+          </div>
+        </div>
+        <div class="conn-card">
+          <div class="conn-top"><span class="conn-name">Spotify</span><span class="conn-status" id="conn-dot-spotify">—</span></div>
+          <input id="conn-spotify" type="text" placeholder="Spotify Client ID" />
+          <div class="conn-actions">
+            <button class="hub-quick-btn" data-conn-save="spotify">Kaydet</button>
+            <button class="hub-quick-btn" id="conn-spotify-connect">Bağlan</button>
+            <a class="conn-help" href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">Client ID nereden alınır?</a>
+          </div>
+          <div class="conn-note">Spotify uygulamanın <b>Redirect URI</b> listesine şunu ekle: <code>http://127.0.0.1:8888/callback</code></div>
+        </div>
+        <div class="conn-card">
+          <div class="conn-top"><span class="conn-name">Google (Takvim / Gmail / Drive / Görevler)</span><span class="conn-status" id="conn-dot-google">—</span></div>
+          <input id="conn-google-id" type="text" placeholder="Google Client ID" />
+          <input id="conn-google-secret" type="password" placeholder="Google Client Secret" />
+          <div class="conn-actions">
+            <button class="hub-quick-btn" data-conn-save="google">Kaydet</button>
+            <button class="hub-quick-btn" id="conn-google-connect">Bağlan</button>
+            <a class="conn-help" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Credentials nereden alınır?</a>
+          </div>
+          <div class="conn-note">OAuth istemci türü: <b>Masaüstü uygulaması</b>. Google Cloud'da Calendar, Gmail, Drive ve Tasks API'lerini etkinleştir.</div>
+        </div>
+      </div>
+      <div class="settings-foot">
+        <span id="connections-status"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kullanıcı rehberi (onboarding turu) — ilk açılışta bir kez -->
+  <div id="onboard-overlay" class="hidden">
+    <div class="onboard-box">
+      <div class="onboard-head">
+        <h2 id="onboard-title">Harley'ye hoş geldin!</h2>
+      </div>
+      <div class="onboard-body" id="onboard-body"></div>
+      <div class="onboard-dots" id="onboard-dots"></div>
+      <div class="onboard-actions">
+        <button id="onboard-skip" class="onboard-skip">Atla</button>
+        <button id="onboard-prev" class="onboard-btn" disabled>←</button>
+        <button id="onboard-next" class="onboard-btn onboard-next">Devam →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detaylı Rehber (ana menüdeki "Rehber" butonu) -->
+  <div id="guide-overlay" class="hidden">
+    <div class="guide-box">
+      <div class="guide-head">
+        <span class="guide-head-ic" id="guide-head-ic"></span>
+        <h2>Harley Rehberi</h2>
+        <button id="guide-close" class="guide-close" title="Kapat">✕</button>
+      </div>
+      <div class="guide-tabs">
+        <button class="guide-tab active" data-gtab="baslangic">Başlangıç</button>
+        <button class="guide-tab" data-gtab="proje">Proje Yapımı</button>
+        <button class="guide-tab" data-gtab="git">Git / GitHub</button>
+        <button class="guide-tab" data-gtab="komutlar">Komutlar</button>
+        <button class="guide-tab" data-gtab="ipuclari">İpuçları</button>
+      </div>
+      <div class="guide-body" id="guide-body"></div>
+    </div>
+  </div>
+
+
+
+  <script src="usage-chart.js"></script>
+  <script type="module" src="pet/harley.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
