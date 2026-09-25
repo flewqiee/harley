@@ -118,6 +118,10 @@ contextBridge.exposeInMainWorld('assistant', {
     saveGoogle: (clientId, clientSecret) => ipcRenderer.invoke('connections:saveGoogle', { clientId, clientSecret }),
     connectGoogle: () => ipcRenderer.invoke('connections:connectGoogle'),
   },
+  data: {
+    export: () => ipcRenderer.invoke('data:export'),
+    reset: () => ipcRenderer.invoke('data:reset'),
+  },
   code: {
     writeFile: (path, content) => ipcRenderer.invoke('code:writeFile', { path, content }),
   },

@@ -1870,6 +1870,47 @@ ipcMain.handle('chat:models', () => {
     }
   });
 
+  // ---------- Veri yönetimi: yedekle / tümünü sil ----------
+  ipcMain.handle('data:export', async () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow;
+    const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], title: 'Yedek için klasör seç' });
+    if (r.canceled || !r.filePaths.length) return { ok: false, message: 'İptal edildi.' };
+    const stamp = new Date().toISOString().slice(0, 10);
+    const dest = path.join(r.filePaths[0], 'HarleyYedek-' + stamp);
+    try {
+      fs.mkdirSync(dest, { recursive: true });
+      if (fs.existsSync(CFG.HARLEY_DIR)) fs.cpSync(CFG.HARLEY_DIR, path.join(dest, 'HarleyDosyalar'), { recursive: true });
+      const ud = app.getPath('userData');
+      for (const f of ['settings.json', 'profile.md']) {
+        const s = path.join(ud, f);
+        if (fs.existsSync(s)) fs.copyFileSync(s, path.join(dest, f));
+      }
+      return { ok: true, message: 'Yedeklendi: ' + dest, path: dest };
+    } catch (e) { return { ok: false, message: 'Yedeklenemedi: ' + e.message }; }
+  });
+
+  ipcMain.handle('data:reset', async () => {
+    const win = BrowserWindow.getFocusedWindow() || mainWindow;
+    const r = await dialog.showMessageBox(win, {
+      type: 'warning',
+      buttons: ['Vazgeç', 'Evet, sil'],
+      defaultId: 0,
+      cancelId: 0,
+      title: 'Tüm verileri sil',
+      message: 'Tüm yerel Harley verileri silinsin mi?',
+      detail: 'Anahtarlar, hafıza, hatırlatmalar, pano ve ayarlar kalıcı olarak silinir. Bu işlem geri alınamaz.',
+    });
+    if (r.response !== 1) return { ok: false, message: 'İptal edildi.' };
+    try {
+      if (fs.existsSync(CFG.HARLEY_DIR)) fs.rmSync(CFG.HARLEY_DIR, { recursive: true, force: true });
+      const ud = app.getPath('userData');
+      for (const f of ['settings.json', 'profile.md', 'clipboard.json']) {
+        try { fs.rmSync(path.join(ud, f), { force: true }); } catch { /* yok */ }
+      }
+      return { ok: true, message: 'Tüm veriler silindi. Uygulama yeniden başlatılıyor.' };
+    } catch (e) { return { ok: false, message: 'Silinemedi: ' + e.message }; }
+  });
+
   function friendlyError(err) {
     const m = String((err && err.message) || err);
     if (/not found/i.test(m)) return 'Bu model henüz hazır değil — indirme devam ediyor. Birkaç dakika sonra tekrar dene.';

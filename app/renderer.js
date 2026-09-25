@@ -419,6 +419,21 @@ const GUIDE_TABS = {
       '<li><b>Hatalar:</b> Bir şey ters giderse ana menüdeki "Son Hatalar" paneline bak.</li>' +
       '</ul></div>',
   },
+  gizlilik: {
+    title: 'Gizlilik',
+    html: '<div class="guide-sec"><h3>Verilerin nerede?</h3><ul class="guide-list">' +
+      '<li><b>Anahtarlar / hafıza / hatırlatmalar / pano:</b> <code>%USERPROFILE%\\HarleyDosyalar\\</code></li>' +
+      '<li><b>Kişisel ayarlar &amp; profil:</b> <code>%APPDATA%\\harley\\</code></li>' +
+      '<li><b>Kod çalışma alanı:</b> <code>%USERPROFILE%\\HarleyKod\\</code></li>' +
+      '</ul><p class="guide-note">Hiçbir veri Harley sunucularına gitmez — böyle bir sunucu yok.</p></div>' +
+      '<div class="guide-sec"><h3>Neler dışarı gider?</h3><ul class="guide-list">' +
+      '<li>Sohbet yalnızca seçtiğin sağlayıcıya (varsayılan: DeepSeek) gider.</li>' +
+      '<li>Google / GitHub / Spotify yalnızca sen bağlarsan ve senin anahtarınla çalışır.</li>' +
+      '<li>GitHub\'a yazma işlemleri (commit/push/issue) her zaman önce onayını ister.</li>' +
+      '<li>Yerel dosya yazma, sadece bağladığın çalışma klasöründe geçerlidir.</li>' +
+      '</ul></div>' +
+      '<div class="guide-sec"><h3>Sil / yedekle</h3><p>Ayarlar → <b>Verilerim</b> bölümünden tüm yerel verini tek tıkla yedekleyebilir veya silebilirsin.</p></div>',
+  },
 };
 function wireGuide() {
   const btn = $('guide-btn');
@@ -3094,6 +3109,24 @@ async function openProjectSearch(name, dir) {
     settingsBtn.addEventListener('click', openSettings);
     $('settings-close').addEventListener('click', closeSettings);
     $('settings-save').addEventListener('click', saveSettings);
+    const dataExport = $('data-export');
+    if (dataExport) dataExport.addEventListener('click', async () => {
+      const el = $('settings-status');
+      if (el) el.textContent = 'Yedekleniyor…';
+      let r; try { r = await window.assistant.data.export(); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+      if (el) el.textContent = (r && r.message) || '';
+    });
+    const dataReset = $('data-reset');
+    if (dataReset) dataReset.addEventListener('click', async () => {
+      let r; try { r = await window.assistant.data.reset(); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+      if (r && r.ok) {
+        try { localStorage.clear(); } catch { /* yok */ }
+        setTimeout(() => location.reload(), 900);
+      } else {
+        const el = $('settings-status');
+        if (el) el.textContent = (r && r.message) || '';
+      }
+    });
     settingsOverlay.addEventListener('click', (e) => {
       if (e.target === settingsOverlay) closeSettings();
     });

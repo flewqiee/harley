@@ -476,6 +476,14 @@
           </select>
           <small>İnternet yoksa Harley otomatik olarak yerel Piper'a geçer.</small>
         </label>
+        <label class="set-field set-full">
+          <span>Verilerim <small>(yerel anahtar / hafıza / ayarlar)</small></span>
+          <div class="data-actions">
+            <button type="button" id="data-export" class="hub-quick-btn">Yedekle (dışa aktar)</button>
+            <button type="button" id="data-reset" class="hub-quick-btn data-danger">Tüm verileri sil</button>
+          </div>
+          <small>Yedek, seçtiğin klasöre kopyalanır. Silme işlemi geri alınamaz.</small>
+        </label>
       </div>
       <div class="settings-foot">
         <span id="settings-status"></span>
@@ -787,6 +795,7 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
         <button class="guide-tab" data-gtab="git">Git / GitHub</button>
         <button class="guide-tab" data-gtab="komutlar">Komutlar</button>
         <button class="guide-tab" data-gtab="ipuclari">İpuçları</button>
+        <button class="guide-tab" data-gtab="gizlilik">Gizlilik</button>
       </div>
       <div class="guide-body" id="guide-body"></div>
     </div>
