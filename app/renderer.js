@@ -3254,6 +3254,26 @@ async function openProjectSearch(name, dir) {
   wireApproval();
   loadActiveTask();
 
+  // Güncelleme bildirimi (GitHub Releases)
+  (function wireUpdates() {
+    const banner = $('update-banner');
+    if (!banner || !window.assistant.updates) return;
+    let current = null;
+    const show = (u) => {
+      if (!u || !u.version) return;
+      current = u;
+      const t = $('update-text');
+      if (t) t.textContent = 'Yeni sürüm v' + u.version + ' hazır';
+      banner.classList.remove('hidden');
+    };
+    if (window.assistant.updates.onAvailable) window.assistant.updates.onAvailable(show);
+    const close = $('update-close');
+    if (close) close.onclick = () => banner.classList.add('hidden');
+    const open = $('update-open');
+    if (open) open.onclick = () => { if (current && current.url) window.assistant.updates.open(current.url); };
+    window.assistant.updates.check().then((u) => { if (u && u.version && !u.upToDate) show(u); }).catch(() => {});
+  })();
+
   // Panel açılınca body.overlay-open — kedi animasyonları duraklar (GPU yükü düşer, panel akıcı açar)
   const overlayObs = new MutationObserver(() => {
     const anyOpen = ['settings-overlay', 'memory-overlay', 'clipboard-overlay', 'focus-overlay', 'evolution-overlay', 'personalization-overlay', 'testrunner-overlay', 'connections-overlay']

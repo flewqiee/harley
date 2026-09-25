@@ -102,6 +102,41 @@ function readSettings() {
   }
 }
 
+// ---------- Güncelleme kontrolü (GitHub Releases) ----------
+// Not: electron-updater ile sessiz otomatik güncelleme, NSIS/kurulum + kod imzalama
+// gerektirir. Portable dağıtımda en sağlıklısı yeni sürümü bildirip indirmeye yönlendirmek.
+function compareVersions(a, b) {
+  const pa = String(a).replace(/^v/i, '').split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = String(b).replace(/^v/i, '').split('.').map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < 3; i++) { const x = pa[i] || 0, y = pb[i] || 0; if (x !== y) return x > y ? 1 : -1; }
+  return 0;
+}
+function checkForUpdates() {
+  return new Promise((resolve) => {
+    const req = https.get({
+      hostname: 'api.github.com',
+      path: '/repos/flewqiee/harley/releases/latest',
+      headers: { 'User-Agent': 'Harley', 'Accept': 'application/vnd.github+json' },
+      timeout: 10000,
+    }, (res) => {
+      let d = '';
+      res.on('data', (c) => (d += c));
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(d);
+          if (!j || !j.tag_name) return resolve(null);
+          const latest = String(j.tag_name).replace(/^v/i, '');
+          if (compareVersions(latest, app.getVersion()) > 0) {
+            resolve({ version: latest, url: j.html_url, name: j.name || ('v' + latest) });
+          } else resolve(null);
+        } catch { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.setTimeout(10000, () => { req.destroy(); resolve(null); });
+  });
+}
+
 function startHidden(command, args, extraEnv) {
   try {
     const child = spawn(command, args, {
@@ -1606,6 +1641,10 @@ app.whenReady().then(() => {
   // bağlanır. Böylece açılışta istenmeyen konsol/pencere ve indirme olmaz.
   createWindow();
   setTimeout(() => runMorningRoutine().catch(() => {}), 20000);
+  // Paketlenmiş sürümde açılıştan bir süre sonra sessizce yeni sürüm var mı diye bak.
+  if (app.isPackaged) setTimeout(async () => {
+    try { const u = await checkForUpdates(); if (u && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:available', u); } catch { /* yok */ }
+  }, 10000);
 
   // ---------- Personalization: oturum başlangıcı kaydı ----------
   // Uygulama açıldığında saat + proje bağlamını öğrenme sistemine kaydet.
@@ -1910,6 +1949,17 @@ ipcMain.handle('chat:models', () => {
       }
       return { ok: true, message: 'Tüm veriler silindi. Uygulama yeniden başlatılıyor.' };
     } catch (e) { return { ok: false, message: 'Silinemedi: ' + e.message }; }
+  });
+
+  // ---------- Güncelleme kontrolü ----------
+  ipcMain.handle('app:version', () => app.getVersion());
+  ipcMain.handle('app:checkUpdates', async () => {
+    const u = await checkForUpdates();
+    if (u && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:available', u);
+    return u || { upToDate: true, version: app.getVersion() };
+  });
+  ipcMain.handle('app:openExternal', (_e, url) => {
+    try { if (/^https:\/\//i.test(String(url || ''))) shell.openExternal(String(url)); return true; } catch { return false; }
   });
 
   function friendlyError(err) {

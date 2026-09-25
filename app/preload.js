@@ -122,6 +122,12 @@ contextBridge.exposeInMainWorld('assistant', {
     export: () => ipcRenderer.invoke('data:export'),
     reset: () => ipcRenderer.invoke('data:reset'),
   },
+  updates: {
+    version: () => ipcRenderer.invoke('app:version'),
+    check: () => ipcRenderer.invoke('app:checkUpdates'),
+    open: (url) => ipcRenderer.invoke('app:openExternal', url),
+    onAvailable: (cb) => ipcRenderer.on('update:available', (_e, u) => cb(u)),
+  },
   code: {
     writeFile: (path, content) => ipcRenderer.invoke('code:writeFile', { path, content }),
   },
