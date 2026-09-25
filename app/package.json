@@ -52,7 +52,6 @@
       "index.html",
       "renderer.js",
       "styles.css",
-      "pet/*.js",
       "assets/**",
       "fonts/**"
     ],

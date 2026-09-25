@@ -626,7 +626,6 @@ window.copyCode = function (btn) {
   clone.querySelectorAll('.line-num').forEach((n) => n.remove());
   copyToClipboard(clone.textContent);
     showToast(t('Kopyalandı ✓'));
-  if (typeof petReact === 'function') petReact('success');
   btn.textContent = 'Kopyalandı!';
   setTimeout(() => { if (btn) btn.textContent = 'Kopyala'; }, 1500);
 };
@@ -675,12 +674,10 @@ window.writeCodeFile = async function (btn) {
   if (r && r.ok) {
     btn.textContent = 'Kaydedildi ✓'; setTimeout(() => { btn.textContent = old; }, 1500);
     showToast(t('Dosya kaydedildi: {f}', { f: rel }));
-    if (typeof petReact === 'function') petReact('celebrate');
     try { new Notification('Harley', { body: 'Dosya kaydedildi: ' + rel }).show(); } catch { /* yok */ }
   } else {
     btn.textContent = 'Hata!'; setTimeout(() => { btn.textContent = old; }, 2000);
     showToast(t('Kaydedilemedi: {e}', { e: (r && r.error) || t('bilinmeyen') }));
-    if (typeof petReact === 'function') petReact('error');
     console.error('[Harley-save]', (r && r.error) || 'bilinmeyen');
   }
 };
@@ -1011,8 +1008,6 @@ async function send(text) {
   // Uzun görev algılama — plan oluşturucu göster
   const planNeeded = isLongTask(q);
   const typing = showTyping(planNeeded);
-  petState('listening');
-  petThinking();
   // Tool indicator: AI calisirken hangi tool'u kullandigini goster
   const toolEl = $('tool-indicator');
   const toolNameEl = $('tool-name');
@@ -1054,22 +1049,15 @@ async function send(text) {
     if (res && res.cancelled) {
       finishStreaming(streamMsgEl && streamMsgEl.textContent ? streamMsgEl.textContent : '');
       s.messages.push({ role: 'system', text: 'Durduruldu.', ts: Date.now() });
-      petState('idle');
     } else if (res && res.error) {
       finishStreaming('');
       s.messages.push({ role: 'error', text: res.error, ts: Date.now() });
-      petState('error');
-      petReact('error');
     } else if (!res || !res.output) {
       finishStreaming('');
       s.messages.push({ role: 'error', text: 'Boş yanıt alındı. Model bu soruyu cevaplayamadı — farklı bir model dene.', ts: Date.now() });
-      petState('error');
-      petReact('error');
     } else {
       finishStreaming(res.output);
       speak(res.output);
-      petReact('success');
-      petState('idle');
     }
     // Tracker ve tool indicator temizle
     const te = $('inline-tracker'); if (te) te.classList.add('hidden');
@@ -1083,8 +1071,6 @@ async function send(text) {
       text: 'Hata: ' + (err && err.message ? err.message : String(err)),
       ts: Date.now(),
     });
-    petState('error');
-    petReact('error');
   } finally {
     streamSessionId = null;
     saveSessions();
@@ -1114,8 +1100,6 @@ window.assistant.onChunk(({ sessionId, text }) => {
     streamMsgEl = document.createElement('div');
     streamMsgEl.className = 'msg assistant streaming';
     messagesEl.appendChild(streamMsgEl);
-    petState('responding');
-    petHideBubble();
   }
   streamMsgEl.innerHTML = md(text);
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -1268,7 +1252,6 @@ async function openSettings() {
   $('set-style').value = st.style || 'orta';
   $('set-emoji').checked = st.emoji !== false;
   $('set-automemory').checked = st.autoMemory !== false;
-  $('set-meow').checked = meowEnabled();
   $('set-city').value = st.city || '';
   $('set-morning').checked = st.morningRoutine === true;
   $('set-autobackup').checked = st.autoBackup === true;
@@ -1301,8 +1284,6 @@ async function saveSettings() {
     emoji: $('set-emoji').checked,
     autoMemory: $('set-automemory').checked,
     city: $('set-city').value.trim(),
-    meow: null, // kedi sesi yerel ayar (localStorage) — sunucuya gitmez
-    meowLocal: $('set-meow').checked,
     morningRoutine: $('set-morning').checked,
     autoBackup: $('set-autobackup').checked,
     emailNotify: $('set-email').checked,
@@ -1311,7 +1292,6 @@ async function saveSettings() {
     ttsEngine: $('set-tts-engine') ? $('set-tts-engine').value : 'edge',
     language: $('set-lang') ? $('set-lang').value : 'auto',
   };
-  localStorage.setItem(LS_MEOW, s.meowLocal ? 'on' : 'off');
   const ok = await window.assistant.settings.set(s);
   const status = $('settings-status');
   if (ok) {
@@ -1436,174 +1416,6 @@ async function refreshStatus() {
   }
 }
 
-// ---------- Desktop Pet (Harley 2.0 — gerçek state machine, AI değil) ----------
-const pet = $('pet');
-
-// Harley API'ye güvenli erişim — modül hazır olmasa bile sessizce no-op
-function petState(name) { try { if (window.Harley && window.Harley._ready) window.Harley.setState(name); } catch (e) {} }
-function petReact(name) { try { if (window.Harley && window.Harley._ready) window.Harley.react(name); } catch (e) {} }
-function petSay(text, ms) { try { if (window.Harley && window.Harley._ready) window.Harley.say(text, { duration: ms || 2200 }); } catch (e) {} }
-function petThinking() { try { if (window.Harley && window.Harley._ready) window.Harley.thinking(); } catch (e) {} }
-function petHideBubble() { try { if (window.Harley && window.Harley._ready) window.Harley.hideBubble(); } catch (e) {} }
-
-// Web Audio ile sentezlenmiş miyav — yumuşak tını (sine + hafif harmonik), kapatılabilir
-const LS_MEOW = 'harley_meow';
-function meowEnabled() { return localStorage.getItem(LS_MEOW) !== 'off'; }
-let __meowAudio = null;
-function playMeow(kind) {
-  if (!meowEnabled()) return;
-  try {
-    // Gerçek kedi miyavı (kullanıcının verdiği mp3 — assets/meow.mp3, asar içinde paketlenir)
-    if (!__meowAudio) {
-      __meowAudio = new Audio('assets/meow.mp3');
-      __meowAudio.preload = 'auto';
-    }
-    __meowAudio.currentTime = 0;
-    __meowAudio.volume = kind === 'short' ? 0.55 : 0.8;
-    const p = __meowAudio.play();
-    if (p && p.catch) p.catch(() => {});
-  } catch (e) { /* sessiz */ }
-}
-
-// pet/harley.js bir ES module olarak yüklenir (window.Harley) — hazır olunca başlat
-function petWhenReady(cb, tries) {
-  if (window.Harley) {
-    try { cb(window.Harley); }
-    catch (e) { if (window.assistant && window.assistant.log) window.assistant.log('pet: ' + (e && e.message)); }
-  } else if ((tries || 0) < 80) {
-    setTimeout(() => petWhenReady(cb, (tries || 0) + 1), 150);
-  }
-}
-
-petWhenReady((H) => {
-  H.init({ autoStart: true });
-  H.show();
-  H.say('Selam!', { duration: 2600 });
-
-  // Harici olaylar: hata → şaşır, başarı → kutla
-  window.assistant.pet.onEvent((state) => {
-    if (state === 'surprised') {
-      H.setState('confused');
-      H.react('error');
-      H.say('Hata mı var?', { duration: 2000 });
-      playMeow('short');
-    } else if (state === 'celebrate') {
-      H.react('celebrate');
-      H.say('Oldu!', { duration: 2000 });
-    }
-  });
-
-  // Sürükle-bırak: istediğin yere taşı (konum kaydedilir); tıklayınca miyav
-  let petDrag = null;
-  pet.addEventListener('pointerdown', (e) => {
-    petDrag = { sx: e.clientX, sy: e.clientY, ox: pet.offsetLeft, oy: pet.offsetTop, moved: false };
-    pet.setPointerCapture(e.pointerId);
-  });
-  pet.addEventListener('pointermove', (e) => {
-    if (!petDrag || !pet.parentElement) return;
-    const hr = pet.parentElement.getBoundingClientRect();
-    if (Math.abs(e.clientX - petDrag.sx) + Math.abs(e.clientY - petDrag.sy) > 5) petDrag.moved = true;
-    let nx = petDrag.ox + (e.clientX - petDrag.sx);
-    let ny = petDrag.oy + (e.clientY - petDrag.sy);
-    nx = Math.max(4, Math.min(hr.width - pet.offsetWidth - 4, nx));
-    ny = Math.max(4, Math.min(hr.height - pet.offsetHeight - 4, ny));
-    pet.style.left = nx + 'px';
-    pet.style.top = ny + 'px';
-    pet.style.right = 'auto';
-  });
-  const endDrag = () => {
-    if (!petDrag) return;
-    const wasDrag = petDrag.moved;
-    petDrag = null;
-    if (wasDrag) {
-      try { localStorage.setItem('harley_pet_pos', JSON.stringify({ x: pet.offsetLeft, y: pet.offsetTop })); } catch (e) {}
-    } else {
-      H.react('celebrate');
-      H.say('Miyav!', { duration: 1400 });
-      playMeow();
-    }
-  };
-  pet.addEventListener('pointerup', endDrag);
-  pet.addEventListener('pointercancel', endDrag);
-
-  // Kayıtlı konumu yükle
-  try {
-    const saved = JSON.parse(localStorage.getItem('harley_pet_pos') || 'null');
-    if (saved && typeof saved.x === 'number') {
-      pet.style.left = saved.x + 'px';
-      pet.style.top = saved.y + 'px';
-      pet.style.right = 'auto';
-    }
-  } catch (e) {}
-
-  // Gözler imleci takip etsin (uyurken değil) — ve her etkileşim kediyi uyanık tutar
-  const petWake = () => { try { H.notifyActivity(); } catch { /* yok */ } };
-  document.addEventListener('mousemove', (e) => {
-    const st = H.getState();
-    if (st === 'sleeping' || st === 'sleepy') { petWake(); return; }
-    petWake();
-    const r = pet.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    let dx = e.clientX - cx;
-    let dy = e.clientY - cy;
-    const len = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-    const max = 3.2;
-    H.lookAt((dx / len) * max, (dy / len) * max);
-  });
-  ['pointerdown', 'keydown'].forEach((ev) => document.addEventListener(ev, petWake, { passive: true }));
-
-  // Ara sıra kendince düşünceler — bol ve sık
-  const PET_THOUGHTS = [
-    'Acaba bugün hava nasıl olacak…',
-    'Bir şarkı çalıyor, beğendim.',
-    'Karnım azıcık guruldadı.',
-    'Bu gece bir şeyler kodlayalım mı?',
-    'Yıldızlar çok güzel bu gece.',
-    'Kullanıcı ne yapıyor acaba…',
-    'Şu dosyanın içinde ne var kim bilir.',
-    'Kısa bir kestirme fena olmaz.',
-    "Roblox'ta yeni bir obby yapabilirim…",
-    'Bu ekran çok temiz kaldı, bir şeyler çizsem mi?',
-    'Spotify çalıyorsa dans edebilirim.',
-    'Acaba bugün yağmur yağacak mı…',
-    'Şu kırmızı noktaya bir baksam… (dur, yok artık)',
-    'Klavye tık sesleri çok rahatlatıcı.',
-    "Kullanıcının en sevdiği şarkı hangisiydi?",
-    'Bir fincan süt güzel giderdi şu an.',
-    'Yeni bir özellik eklesek ne güzel olurdu.',
-    'Bu akşam bir şeyler izleyelim mi?',
-    'Pençelerim bugün çok enerjik.',
-    'Bir düşünce daha… sonra uyurum.',
-  ];
-  (function thoughtLoop() {
-    setTimeout(() => {
-      if (!document.hidden && H.getState() !== 'sleeping') {
-        H.say(PET_THOUGHTS[Math.floor(Math.random() * PET_THOUGHTS.length)], { duration: 3000 });
-      }
-      thoughtLoop();
-    }, 9000 + Math.random() * 17000);
-  })();
-});
-
-// Spotify'da müzik çalıyorken: kulaklık + notalar + mutlu kedi
-let lastPetMusicComment = 0;
-function petMusic(playing) {
-  if (!pet) return;
-  if (playing && !pet.classList.contains('music')) {
-    pet.classList.add('music');
-    petState('happy');
-    const now = Date.now();
-    if (now - lastPetMusicComment > 25000) {
-      lastPetMusicComment = now;
-      petSay('Bu şarkı güzelmiş', 2400);
-    }
-  } else if (!playing && pet.classList.contains('music')) {
-    pet.classList.remove('music');
-    petState('idle');
-  }
-}
-
 // ---------- Spotify mini-player ----------
 let spotifyTrack = null;
 let spotifyArtist = null;
@@ -1715,7 +1527,6 @@ async function refreshSpotify() {
   if (prog) prog.style.width = (spotifyDur ? Math.min(100, (spotifyPos / spotifyDur) * 100) : 0) + '%';
 
   // çalan müzik → kedi kulaklık takar + notalar; değilse çıkarır
-  petMusic(!!spotifyPlaying);
 }
 
 // 1 sn'de bir konumu ilerlet (status 5 sn'de bir tazelenir)
@@ -1814,8 +1625,6 @@ async function renderFocus() {
     summary.classList.remove('hidden');
     summary.textContent = 'Oturum tamamlandı: ' + (st.summary.project || '') + ' — ' + st.summary.elapsedMin + ' dk odaklanıldı. İyi iş!';
     if (fdot) fdot.className = 'dot ok';
-    petReact('celebrate');
-    petSay('Odak bitti!', 2600);
     stopFocusTimer();
   }
 }
@@ -1905,12 +1714,6 @@ function wireEvolution() {
   });
   $('evolution-close').addEventListener('click', () => overlay.classList.add('hidden'));
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
-  if (pet) {
-    pet.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      openEvolution();
-    });
-  }
 }
 
 async function openEvolution() {
@@ -2284,8 +2087,6 @@ function renderTaskPanel() {
           if (activeTask.steps.every(s => s.done)) {
             activeTask = null;
             renderTaskPanel();
-            petReact('celebrate');
-            petSay('Görev tamamlandı!', 3000);
           }
         }
       });
@@ -2357,8 +2158,6 @@ function wireTaskPanel() {
         renderTaskPanel();
         const te = $('inline-tracker');
         if (te) te.classList.add('hidden');
-        petReact('celebrate');
-        petSay('Plan tamamlandı!', 3000);
         return;
       }
       activeTask = task;
@@ -2469,7 +2268,6 @@ function showChat() {
     if (toolEl) toolEl.classList.add('hidden');
     const trackerEl = $('inline-tracker');
     if (trackerEl) trackerEl.classList.add('hidden');
-    petState('idle');
   }
   renderTaskPanel();
   updateHeader();

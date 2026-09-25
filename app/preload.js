@@ -158,9 +158,6 @@ contextBridge.exposeInMainWorld('assistant', {
     getConfig: (options) => ipcRenderer.invoke('testRunner:getConfig', options),
     prePushGate: (options) => ipcRenderer.invoke('testRunner:prePushGate', options),
   },
-  pet: {
-    onEvent: (cb) => ipcRenderer.on('pet:event', (_e, state) => cb(state)),
-  },
   tool: {
     onProgress: (cb) => ipcRenderer.on('tool:progress', (_e, p) => cb(p)),
   },

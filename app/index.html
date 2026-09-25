@@ -241,73 +241,6 @@
 
       <main id="messages"></main>
 
-      <!-- Desktop Pet (Harley 2.0 — state machine, AI değil) -->
-      <div id="pet" class="pet hidden" data-state="idle" title="Harley">
-        <div id="pet-bubble" class="pet-bubble hidden" role="status" aria-live="polite">
-          <span class="pet-bubble__text"></span>
-          <span class="pet-bubble__dots" aria-hidden="true"><i></i><i></i><i></i></span>
-        </div>
-        <div id="pet-body" class="pet-body">
-          <!-- müzik çalarken görünür: kulaklık + notalar (CSS .pet.music ile) -->
-          <div class="harley-headphones" aria-hidden="true">
-            <svg viewBox="0 0 84 38" width="74" height="33">
-              <path d="M7 24 C7 5 77 5 77 24" fill="none" stroke="#2c1c12" stroke-width="5" stroke-linecap="round"/>
-              <rect x="0" y="18" width="15" height="19" rx="7" fill="#2c1c12"/>
-              <rect x="69" y="18" width="15" height="19" rx="7" fill="#2c1c12"/>
-              <rect x="3.5" y="22" width="8" height="12" rx="4" fill="#e5823d"/>
-              <rect x="72.5" y="22" width="8" height="12" rx="4" fill="#e5823d"/>
-            </svg>
-          </div>
-          <div class="harley-notes" aria-hidden="true"><i>♪</i><i>♫</i><i>♪</i></div>
-          <svg class="harley" viewBox="0 0 120 132" width="64" height="70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <ellipse class="harley-shadow" cx="60" cy="121" rx="27" ry="5"/>
-            <g class="harley-body-group">
-              <path class="harley-tail" d="M83,104 C107,101 114,76 100,58 C93,49 82,52 83,63 C84,71 93,74 98,67" fill="none" stroke-linecap="round"/>
-              <path class="harley-torso" d="M32,116 C27,88 35,64 60,63 C85,64 93,88 88,116 C88,123 32,123 32,116 Z"/>
-              <path class="harley-chest" d="M60,80 C70,80 76,92 74,106 C73,114 47,114 46,106 C44,92 50,80 60,80 Z"/>
-              <g class="harley-paws">
-                <ellipse class="harley-paw" cx="47" cy="114" rx="9" ry="7"/>
-                <ellipse class="harley-paw" cx="73" cy="114" rx="9" ry="7"/>
-                <path class="harley-toes" d="M43,111 L43,117 M47,110 L47,117 M51,111 L51,117"/>
-                <path class="harley-toes" d="M69,111 L69,117 M73,110 L73,117 M77,111 L77,117"/>
-              </g>
-            </g>
-            <g class="harley-head-group">
-              <g class="harley-ear harley-ear--left">
-                <path class="harley-ear-outer" d="M30,34 C25,19 34,7 47,17 C45,26 38,32 30,34 Z"/>
-                <path class="harley-ear-inner" d="M33,29 C31,20 36,13 43,18 C41,23 37,27 33,29 Z"/>
-              </g>
-              <g class="harley-ear harley-ear--right">
-                <path class="harley-ear-outer" d="M90,34 C95,19 86,7 73,17 C75,26 82,32 90,34 Z"/>
-                <path class="harley-ear-inner" d="M87,29 C89,20 84,13 77,18 C79,23 83,27 87,29 Z"/>
-              </g>
-              <path class="harley-face" d="M60,17 C79,17 92,31 90,49 C89,61 78,71 60,71 C42,71 31,61 30,49 C28,31 41,17 60,17 Z"/>
-              <path class="harley-muzzle" d="M60,50 C71,50 76,58 73,65 C70,70 50,70 47,65 C44,58 49,50 60,50 Z"/>
-              <path class="harley-brow harley-brow--left" d="M41,37 Q48,34 54,37"/>
-              <path class="harley-brow harley-brow--right" d="M66,37 Q72,34 79,37"/>
-              <g class="harley-eye harley-eye--left" style="--eye-x:48; --eye-y:45">
-                <ellipse class="harley-iris" cx="48" cy="45" rx="6.4" ry="7.2"/>
-                <ellipse class="harley-pupil" cx="48" cy="45" rx="2.1" ry="5.6"/>
-                <circle class="harley-glint" cx="46" cy="42" r="1.3"/>
-              </g>
-              <g class="harley-eye harley-eye--right" style="--eye-x:72; --eye-y:45">
-                <ellipse class="harley-iris" cx="72" cy="45" rx="6.4" ry="7.2"/>
-                <ellipse class="harley-pupil" cx="72" cy="45" rx="2.1" ry="5.6"/>
-                <circle class="harley-glint" cx="70" cy="42" r="1.3"/>
-              </g>
-              <path class="harley-nose" d="M57,55 L63,55 L60,59 Z"/>
-              <path class="harley-mouth" d="M60,59 C60,62 56,64 52,63 M60,59 C60,62 64,64 68,63"/>
-              <g class="harley-whiskers harley-whiskers--left">
-                <path d="M32,52 L14,49 M32,56 L13,56 M32,60 L14,63"/>
-              </g>
-              <g class="harley-whiskers harley-whiskers--right">
-                <path d="M88,52 L106,49 M88,56 L107,56 M88,60 L106,63"/>
-              </g>
-            </g>
-          </svg>
-        </div>
-      </div>
-
       <!-- Task Planner Paneli -->
       <div id="task-panel" class="hidden">
         <div class="task-head">
@@ -460,11 +393,7 @@
           <input id="set-automemory" type="checkbox" />
           <span>Otomatik hafıza <small>(her sohbette seni öğrenir)</small></span>
         </label>
-        <label class="set-field set-check">
-          <input id="set-meow" type="checkbox" />
-          <span>Kedi sesi <small>(tıklayınca miyavlasın)</small></span>
-        </label>
-        <label class="set-field">
+                <label class="set-field">
           <span>Şehir <small>(hava durumu için)</small></span>
           <input id="set-city" type="text" placeholder="örn. İstanbul" />
         </label>
@@ -817,7 +746,6 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
 
 
   <script src="usage-chart.js"></script>
-  <script type="module" src="pet/harley.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

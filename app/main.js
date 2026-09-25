@@ -2317,13 +2317,6 @@ ipcMain.handle('chat:models', () => {
       const aw = autoWriteFiles(res.output);
       if (aw.created.length || aw.updated.length || aw.errors.length) res.output = aw.output;
     }
-    // Desktop Pet olayları: hata → şaşır, başarı → kutla.
-    try {
-      for (const w of BrowserWindow.getAllWindows()) {
-        if (res && res.error) w.webContents.send('pet:event', 'surprised');
-        else if (res && res.output) w.webContents.send('pet:event', 'celebrate');
-      }
-    } catch { /* yok */ }
     // Otomatik hafıza: başarılı cevaptan kalıcı gerçekleri çıkar (arka planda, sohbeti bekletmez).
     if (res && res.output && !res.error) {
       evolution.recordUse('ai-sohbet', 'tool');
@@ -2914,10 +2907,6 @@ ipcMain.handle('chat:models', () => {
                     rect: r ? { w: Math.round(r.width), h: Math.round(r.height), x: Math.round(r.x), y: Math.round(r.y) } : null,
                     hRightKids: h ? h.children.length : -1,
                     viewW: document.documentElement.clientWidth,
-                    petExists: !!document.getElementById('pet'),
-                    petClasses: (document.getElementById('pet') || {}).className || null,
-                    petState: (document.getElementById('pet') || {}).dataset ? document.getElementById('pet').dataset.state : null,
-                    harleyGlobal: typeof window.Harley !== 'undefined' ? 'yes' : 'no',
                     hubExists: !!document.getElementById('hub'),
                     hubClass: (document.getElementById('hub') || {}).className || null,
                     hubCards: document.querySelectorAll('#hub .hub-card').length,
