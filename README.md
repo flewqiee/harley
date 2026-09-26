@@ -49,11 +49,11 @@ kalır.**
 
 <div align="center">
 
-![Harley arayüzü](docs/screenshot.png)
+![Harley arayüzü](docs/HarleyMenu.png)
 
 </div>
 
-> Görseli kendi ekran görüntünle değiştirebilirsin: `docs/screenshot.png`.
+> Görseli kendi ekran görüntünle değiştirebilirsin: `docs/HarleyMenu.png`.
 
 ## 🧩 Özellikler
 
