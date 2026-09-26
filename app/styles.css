@@ -2951,3 +2951,50 @@ body.premium .side-sub { letter-spacing: .18em; }
   margin-left: 6px;
 }
 
+
+/* ---------- Premium tema: bol altin, ayricalikli koyu ---------- */
+[data-theme="premium"] {
+  color-scheme: dark;
+  --canvas: #14100a;
+  --canvas-2: #1b150c;
+  --card: #201810;
+  --card-2: #281f14;
+  --ink: #f7edd9;
+  --ink-soft: #e6d3ab;
+  --muted: #b79a63;
+  --line: rgba(212,162,74,.26);
+  --line-2: rgba(230,188,96,.52);
+  --accent: #e3b64e;
+  --accent-2: #f2cd76;
+  --accent-deep: #d4a24a;
+  --accent-dim: rgba(227,182,78,.16);
+  --accent-softer: rgba(227,182,78,.24);
+  --user-grad: linear-gradient(135deg, #e3b64e, #b8860b);
+  --ok: #86c565;
+  --warn: #e8b23f;
+  --bad: #e0896b;
+  --glass: rgba(32,24,16,0.9);
+  --error-bg: rgba(224,137,107,.12);
+  --error-border: rgba(224,137,107,.4);
+  --code-bg: #241a10;
+  --code-border: rgba(230,188,96,.35);
+  --code-ink: #f6e7c8;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35), 0 2px 10px rgba(201,150,47,.12);
+  --shadow-md: 0 6px 18px rgba(0,0,0,.4), 0 14px 40px rgba(201,150,47,.14);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.5), 0 28px 90px rgba(201,150,47,.2);
+}
+html[data-theme="premium"] body { background: radial-gradient(1200px 600px at 80% -10%, rgba(201,150,47,.12), transparent 60%), var(--canvas); }
+[data-theme="premium"] .side-title { color: #f2cd76; }
+[data-theme="premium"] .side-head { border-bottom: 1px solid var(--line); }
+[data-theme="premium"] #sidebar { border-right: 1px solid var(--line); }
+[data-theme="premium"] .hub-hero h2 { color: #f7edd9; }
+[data-theme="premium"] .hub-card { border-color: var(--line); }
+[data-theme="premium"] .hub-card:hover { border-color: var(--line-2); box-shadow: var(--shadow-md); }
+[data-theme="premium"] .nav-btn.active,
+[data-theme="premium"] .nav-btn:hover { color: #f2cd76; }
+[data-theme="premium"] #send { background: linear-gradient(135deg, #e3b64e, #b8860b); color: #1a1206; }
+[data-theme="premium"] .hub-quick-btn:hover { border-color: var(--line-2); color: #f2cd76; }
+[data-theme="premium"] .usage-tab.active { background: linear-gradient(135deg,#e3b64e,#c9962f); color:#1a1206; }
+[data-theme="premium"] .msg.user .bubble { box-shadow: 0 4px 16px rgba(201,150,47,.25); }
+[data-theme="premium"] .premium-badge,
+[data-theme="premium"] .side-sub { filter: drop-shadow(0 0 6px rgba(227,182,78,.4)); }

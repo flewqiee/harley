@@ -102,16 +102,15 @@ function currentTheme() {
   return 'light';
 }
 function applyTheme(t) {
-  const base = t === 'premium' ? 'dark' : (t === 'dark' ? 'dark' : 'light');
-  document.documentElement.dataset.theme = base;
-  try { document.body.classList.toggle('premium-theme', t === 'premium'); } catch { /* yok */ }
+  const dark = (t === 'dark' || t === 'premium');
+  document.documentElement.dataset.theme = t;
   try {
     localStorage.setItem(LS_THEME, t);
   } catch { /* yok */ }
   const btn = $('theme-btn');
   if (btn) {
-    setIcon(btn, base === 'dark' ? 'sun' : 'moon');
-    btn.title = base === 'dark' ? 'Aydınlık moda geç' : 'Koyu moda geç';
+    setIcon(btn, dark ? 'sun' : 'moon');
+    btn.title = dark ? 'Aydınlık moda geç' : 'Koyu moda geç';
   }
 }
 try {

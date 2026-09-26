@@ -295,7 +295,7 @@ function openSpotifyUri(uri) {
 // Spotify penceresini öne getir (kullanıcı sekmeye gitmek zorunda kalmasın).
 function focusSpotify() {
   return new Promise((resolve) => {
-    const ps = "try { $w = New-Object -ComObject WScript.Shell; [void]$w.AppActivate('Spotify') } catch {}";
+    const ps = "for($i=0;$i -lt 8;$i++){ try { $w = New-Object -ComObject WScript.Shell; if($w.AppActivate('Spotify')){ break } } catch {}; Start-Sleep -Milliseconds 350 }";
     require('child_process').execFile('powershell.exe', ['-NoProfile', '-Command', ps], { windowsHide: true }, () => resolve(true));
   });
 }
