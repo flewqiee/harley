@@ -54,26 +54,16 @@ async function initLang() {
 }
 
 // ---------- Premium (marka + özellikler) ----------
-async function exportChats() {
-  try {
-    let md = '# Harley — sohbet disa aktarimi\n\n';
-    for (const s of (sessions || [])) {
-      md += '## ' + (s.title || 'Sohbet') + '\n\n';
-      for (const m of (s.messages || [])) {
-        md += (m.role === 'user' ? '**Sen:** ' : '**Harley:** ') + String(m.text || '') + '\n\n';
-      }
-    }
-    const r = await window.assistant.premium.saveFile({ suggestedName: 'harley-sohbetler.md', content: md });
-    if (r && r.ok) showToast('Kaydedildi: ' + r.path);
-  } catch { /* yok */ }
-}
 async function applyPremium() {
   if (!window.assistant.premium || !window.assistant.premium.status) return;
   let st; try { st = await window.assistant.premium.status(); } catch { return; }
-  if (!st || !st.active) return;
+  if (!st || !st.active) {
+    // NORMAL sürüm: dosya ekleme tamamen gizli (görsel de metin de yok).
+    const a = $('attach-btn'); if (a) a.style.display = 'none';
+    return;
+  }
   premiumFeatures = st.features || {};
   try { document.title = st.name; } catch { /* yok */ }
-  // Sidebar başlığını "Harley" bırak; premium'u rozetle göster (uzun isim kırpılmasın).
   // Marka: sidebar'da "Harley" + altında premium etiketi
   const sub = document.querySelector('.side-sub');
   if (sub && st.badge) { sub.textContent = st.badge; sub.classList.remove('hidden'); }
@@ -81,6 +71,20 @@ async function applyPremium() {
   // Premium açılış: splash hâlâ görünüyorsa yazıyı güncelle
   const splashText = document.querySelector('.splash-text');
   if (splashText) splashText.textContent = st.name;
+  // Premium tema seçeneği (Ayarlar → Görünüm)
+  try {
+    const sel = $('set-theme');
+    if (sel && premiumFeatures.theme && !sel.querySelector('option[value="premium"]')) {
+      const o = document.createElement('option'); o.value = 'premium'; o.textContent = 'Premium (Altın)'; sel.appendChild(o);
+    }
+  } catch { /* yok */ }
+  // Premium rozeti: hub başlığında
+  try {
+    const hero = document.querySelector('.hub-hero-left h2');
+    if (hero && !document.getElementById('premium-hero-badge')) {
+      hero.insertAdjacentHTML('beforeend', ' <span id="premium-hero-badge" class="premium-badge">PREMIUM</span>');
+    }
+  } catch { /* yok */ }
 }
 
 const LS_SESSIONS = 'assistant_sessions_v1';
@@ -89,23 +93,25 @@ const LS_THEME = 'harley_theme';
 
 // Temayı ilk boyamadan önce uygula (flash olmasın) — localStorage senkron okunur.
 function currentTheme() {
-  const d = document.documentElement.dataset.theme;
-  if (d === 'dark' || d === 'light') return d;
   try {
     const s = localStorage.getItem(LS_THEME);
-    if (s === 'dark' || s === 'light') return s;
+    if (s === 'dark' || s === 'light' || s === 'premium') return s;
   } catch { /* yok */ }
+  const d = document.documentElement.dataset.theme;
+  if (d === 'dark' || d === 'light') return d;
   return 'light';
 }
 function applyTheme(t) {
-  document.documentElement.dataset.theme = t;
+  const base = t === 'premium' ? 'dark' : (t === 'dark' ? 'dark' : 'light');
+  document.documentElement.dataset.theme = base;
+  try { document.body.classList.toggle('premium-theme', t === 'premium'); } catch { /* yok */ }
   try {
     localStorage.setItem(LS_THEME, t);
   } catch { /* yok */ }
   const btn = $('theme-btn');
   if (btn) {
-    setIcon(btn, t === 'dark' ? 'sun' : 'moon');
-    btn.title = t === 'dark' ? 'Aydınlık moda geç' : 'Koyu moda geç';
+    setIcon(btn, base === 'dark' ? 'sun' : 'moon');
+    btn.title = base === 'dark' ? 'Aydınlık moda geç' : 'Koyu moda geç';
   }
 }
 try {

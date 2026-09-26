@@ -2015,14 +2015,7 @@ ipcMain.handle('chat:models', () => {
       features: active ? Object.assign({}, PREMIUM.features) : {},
     };
   });
-  ipcMain.handle('premium:saveFile', async (_e, { suggestedName, content } = {}) => {
-    if (!premiumActive()) return { ok: false, message: 'premium' };
-    const win = BrowserWindow.getFocusedWindow() || mainWindow;
-    const r = await dialog.showSaveDialog(win, { defaultPath: suggestedName || 'harley-export.txt' });
-    if (r.canceled || !r.filePath) return { ok: false, canceled: true };
-    try { fs.writeFileSync(r.filePath, String(content || ''), 'utf8'); return { ok: true, path: r.filePath }; }
-    catch (e) { return { ok: false, message: e.message }; }
-  });
+
 
   // ---------- Güncelleme kontrolü ----------
   ipcMain.handle('app:version', () => app.getVersion());

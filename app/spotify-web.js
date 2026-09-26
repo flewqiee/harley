@@ -292,18 +292,47 @@ function openSpotifyUri(uri) {
   });
 }
 
+// Spotify penceresini öne getir (kullanıcı sekmeye gitmek zorunda kalmasın).
+function focusSpotify() {
+  return new Promise((resolve) => {
+    const ps = "try { $w = New-Object -ComObject WScript.Shell; [void]$w.AppActivate('Spotify') } catch {}";
+    require('child_process').execFile('powershell.exe', ['-NoProfile', '-Command', ps], { windowsHide: true }, () => resolve(true));
+  });
+}
+
+// Hesap Premium mu? (/me ürünü; user-read-private izni gerekir — yoksa false).
+let _premCache = { ts: 0, v: null };
+async function isPremiumAccount() {
+  if (_premCache.v !== null && Date.now() - _premCache.ts < 300000) return _premCache.v;
+  try {
+    const token = await getAccessToken();
+    if (!token) return false;
+    const me = await apiJson('/v1/me', 'GET', token);
+    _premCache = { ts: Date.now(), v: (me.json && me.json.product) === 'premium' };
+    return _premCache.v;
+  } catch { return false; }
+}
+
 async function playQuery(query) {
   const s = await search(query);
   if (!s.ok) return s;
   if (!s.tracks.length) return { ok: false, error: 'no_result' };
   const track = s.tracks[0];
-  try { fs.appendFileSync(require('./config').FILES.diag, new Date().toISOString() + ' spotify-play track="' + track.name + '" uri=' + track.uri + ' playable=' + track.playable + ' explicit=' + track.explicit + '\n'); } catch { /* yok */ }
+  try { fs.appendFileSync(require('./config').FILES.diag, new Date().toISOString() + ' spotify-play track="' + track.name + '" uri=' + track.uri + ' playable=' + track.playable + '\n'); } catch { /* yok */ }
+
+  // ÜCRETSİZ hesap: API ile çalmaya izin yok → doğrudan uygulamada aç ve öne getir.
+  const premium = await isPremiumAccount();
+  if (!premium) {
+    const r0 = await openSpotifyUri(track.uri);
+    if (r0.ok) { setTimeout(focusSpotify, 1200); return { ok: true, track, fallback: true }; }
+  }
+
   const p = await playUris([track.uri]);
   if (p.ok) return { ok: true, track };
-  // API playback başlatamadı (Premium yok / cihaz yok / istemci duraklı) → uygulamada aç.
+  // API playback başlatamadı (cihaz yok / istemci duraklı) → uygulamada aç.
   if (['premium_required', 'playback_not_started', 'no_active_device'].includes(p.error)) {
     const r2 = await openSpotifyUri(track.uri);
-    if (r2.ok) return { ok: true, track, fallback: true };
+    if (r2.ok) { setTimeout(focusSpotify, 1200); return { ok: true, track, fallback: true }; }
   }
   return p;
 }
