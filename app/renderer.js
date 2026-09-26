@@ -1051,15 +1051,16 @@ async function send(text) {
 
   // Ekli dosyaları mesaja ekle (görsel premium'da modele görsel olarak gider)
   const images = [];
+  const visionOk = !!premiumFeatures.vision && modelSelect.value === 'deepseek-flash';
   if (attachedFiles && attachedFiles.length > 0) {
     const extra = [];
     for (const f of attachedFiles) {
-      if (f.type === 'image' && f.content && String(f.content).startsWith('data:') && premiumFeatures.vision) {
-        images.push(f.content); // premium: görseli modele gönder
+      if (f.type === 'image' && f.content && String(f.content).startsWith('data:') && visionOk) {
+        images.push(f.content); // premium + Flash: görseli modele gönder
       } else if (f.type === 'text' && f.content) {
         extra.push('📎 ' + f.name + ' dosyası eklendi:\n' + f.content.slice(0, 12000));
       } else if (f.type === 'image') {
-        extra.push('📎 ' + f.name + ' (görsel ek). Not: Harley görselleri inceleyemiyor — resmi yazıyla anlat, ayrıca sorabilirsin.');
+        extra.push('📎 ' + f.name + ' (görsel ek). ' + (premiumFeatures.vision ? 'Görsel analizi için üstten modeli "DeepSeek V4.1 Flash" seç.' : 'Not: Harley görselleri inceleyemiyor — resmi yazıyla anlat, ayrıca sorabilirsin.'));
       } else {
         extra.push('📎 ' + f.name + (f.note ? ' (' + f.note + ')' : ' dosyası eklendi.'));
       }
