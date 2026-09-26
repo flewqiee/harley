@@ -199,19 +199,17 @@ button { font-family: inherit; }
   cursor: pointer;
   box-shadow: var(--shadow-sm);
 }
-.side-brand { flex: 1; min-width: 0; display: flex; align-items: center; }
-.premium-badge {
-  margin-left: 6px;
+.side-brand { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.side-sub {
   font-family: var(--ui, inherit);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 2px 6px;
-  border-radius: 999px;
+  letter-spacing: 0.16em;
+  margin-top: 1px;
   background: linear-gradient(135deg, #e5823d, #f0c27a);
-  color: #16100a;
-  vertical-align: middle;
-  flex-shrink: 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .side-title {
   font-family: var(--brand);
@@ -2933,3 +2931,8 @@ body.sidebar-collapsed #sidebar .side-foot span:not(.dot) { display: none; }
 
 /* ---------- Typing indicator geliştirmesi ---------- */
 .typing { border-radius: 12px; margin: 0 16px; }
+
+/* ---------- Premium tema (altin vurgu) ---------- */
+body.premium { --accent: #c9962f; --accent-deep: #a87a1f; --accent-dim: rgba(201,150,47,.16); }
+body.premium .side-sub { letter-spacing: .18em; }
+

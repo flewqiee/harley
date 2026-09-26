@@ -2802,7 +2802,13 @@ ipcMain.handle('chat:models', () => {
   }
   ipcMain.handle('file:pick', async () => {
     const win = BrowserWindow.getFocusedWindow() || mainWindow;
-    const r = await dialog.showOpenDialog(win, { properties: ['openFile'], title: 'Harley\'ye dosya ekle' });
+    // Normal sürüm: yalnızca metin/kod belgeleri. Premium: ayrıca görseller (vision).
+    const textExts = ['txt', 'md', 'markdown', 'json', 'js', 'mjs', 'cjs', 'ts', 'jsx', 'tsx', 'py', 'lua', 'rb', 'go', 'rs', 'java', 'c', 'cpp', 'h', 'cs', 'php', 'html', 'htm', 'css', 'scss', 'csv', 'xml', 'yml', 'yaml', 'log', 'ini', 'cfg', 'conf', 'env', 'sql', 'sh', 'bat', 'ps1'];
+    const imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];
+    const filters = premiumActive()
+      ? [{ name: 'Belgeler ve görseller', extensions: textExts.concat(imgExts) }, { name: 'Tüm dosyalar', extensions: ['*'] }]
+      : [{ name: 'Belgeler', extensions: textExts }, { name: 'Tüm dosyalar', extensions: ['*'] }];
+    const r = await dialog.showOpenDialog(win, { properties: ['openFile'], title: 'Harley\'ye dosya ekle', filters });
     if (r.canceled || !r.filePaths.length) return { canceled: true };
     try {
       return { canceled: false, ...readFileForHarley(r.filePaths[0]) };

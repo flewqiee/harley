@@ -74,14 +74,13 @@ async function applyPremium() {
   premiumFeatures = st.features || {};
   try { document.title = st.name; } catch { /* yok */ }
   // Sidebar başlığını "Harley" bırak; premium'u rozetle göster (uzun isim kırpılmasın).
-  const badge = $('premium-badge');
-  if (badge && st.badge) { badge.textContent = st.badge; badge.classList.remove('hidden'); }
-  const ex = $('export-btn');
-  if (ex && st.features && st.features.exportChats) {
-    ex.classList.remove('hidden');
-    ex.addEventListener('click', exportChats);
-    setIcon(ex, 'book', 17);
-  }
+  // Marka: sidebar'da "Harley" + altında premium etiketi
+  const sub = document.querySelector('.side-sub');
+  if (sub && st.badge) { sub.textContent = st.badge; sub.classList.remove('hidden'); }
+  try { document.body.classList.add('premium'); } catch { /* yok */ }
+  // Premium açılış: splash hâlâ görünüyorsa yazıyı güncelle
+  const splashText = document.querySelector('.splash-text');
+  if (splashText) splashText.textContent = st.name;
 }
 
 const LS_SESSIONS = 'assistant_sessions_v1';
