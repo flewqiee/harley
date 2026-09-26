@@ -32,6 +32,7 @@
       "secure-store.js",
       "i18n.js",
       "locales.json",
+      "premium/**",
       "workspace.js",
       "rag.js",
       "google.js",

@@ -21,7 +21,7 @@ const secureStore = require('./secure-store');
 const CONFIG_FILE = FILES.spotify;
 const AUTH_HOST = 'accounts.spotify.com';
 const API_HOST = 'api.spotify.com';
-const SCOPE = 'user-modify-playback-state user-read-playback-state user-read-currently-playing';
+const SCOPE = 'user-modify-playback-state user-read-playback-state user-read-currently-playing user-read-private';
 const DEFAULT_REDIRECT = 'http://127.0.0.1:8888/callback';
 
 let config = null;
@@ -201,7 +201,8 @@ async function connect() {
 async function search(query) {
   const token = await getAccessToken();
   if (!token) return { ok: false, error: 'not_authorized' };
-  const res = await apiJson('/v1/search?q=' + encodeURIComponent(query) + '&type=track&limit=5&market=TR', 'GET', token);
+  // market verme: kullanıcının hesabındaki bölgeye göre çalınabilir parçalar gelsin.
+  const res = await apiJson('/v1/search?q=' + encodeURIComponent(query) + '&type=track&limit=5', 'GET', token);
   const items = (res.json && res.json.tracks && res.json.tracks.items) || [];
   return {
     ok: true,
@@ -212,6 +213,8 @@ async function search(query) {
       artist: (t.artists || []).map((a) => a.name).join(', '),
       album: (t.album && t.album.name) || '',
       duration_ms: t.duration_ms || 0,
+      playable: t.is_playable !== false,
+      explicit: !!t.explicit,
     })),
   };
 }
@@ -226,18 +229,67 @@ async function getDevices() {
 async function playUris(uris) {
   const token = await getAccessToken();
   if (!token) return { ok: false, error: 'not_authorized' };
-  // Aktif cihaz yoksa bile açık bir Spotify cihazına transfer edip çal — "şarkı aç" güvenilir olsun.
-  let target = null;
+
+  const diag0 = (m) => { try { fs.appendFileSync(require('./config').FILES.diag, new Date().toISOString() + ' spotify-play ' + m + '\n'); } catch { /* yok */ } };
+  let product = null;
+  try { const me = await apiJson('/v1/me', 'GET', token); product = me.json && me.json.product; diag0('me product=' + product + ' country=' + (me.json && me.json.country) + ' id=' + (me.json && me.json.id)); } catch { /* yok */ }
+  // Ücretsiz hesapta Spotify playback kontrolünü reddeder (204 dönse bile çalmaz).
+  if (product === 'free') return { ok: false, error: 'premium_required' };
+
+  // Açık cihazları al; tercihen AKTİF cihazda çal (en güvenilir), yoksa Computer/telefon.
+  let devices = [];
+  try { devices = await getDevices(); } catch { /* yok */ }
+  const active = devices.find((d) => d.is_active);
+  const target = active
+    || devices.find((d) => d.type === 'Computer')
+    || devices.find((d) => d.type === 'Smartphone')
+    || devices[0];
+  if (!target) return { ok: false, error: 'no_active_device' };
+
+  const playPath = '/v1/me/player/play?device_id=' + encodeURIComponent(target.id);
+  const playBody = { uris, position_ms: 0 };
+  const doPlay = () => apiJson(playPath, 'PUT', token, playBody);
+  const diag = (m) => { try { fs.appendFileSync(require('./config').FILES.diag, new Date().toISOString() + ' spotify-play ' + m + '\n'); } catch { /* yok */ } };
+  diag('devices=[' + devices.map((d) => d.name + ':' + d.type + (d.is_active ? '*' : '') + ' vol=' + d.volume_percent + (d.is_restricted ? ' RESTRICTED' : '') + (d.is_private_session ? ' PRIVATE' : '')).join(' | ') + '] target=' + (target && target.name));
+
+  // Her seferinde hedef cihaza transfer et — istemci "duraklı" kalıp API'ye çalıyor derken
+  // ses gelmemesi durumunu (Connect desync) giderir. play:false ile transfer; sonra çal.
+  try { await apiJson('/v1/me/player', 'PUT', token, { device_ids: [target.id], play: false }); } catch { /* yok */ }
+
+  const res = await doPlay();
+  diag('status=' + res.status + ' body=' + String(res.body || '').slice(0, 220));
+  if (!(res.status === 204 || res.status === 202)) {
+    const j = res.json || {};
+    const msg = (j.error && j.error.message) ? j.error.message : ('HTTP ' + res.status);
+    if (/no active device|not found/i.test(msg)) return { ok: false, error: 'no_active_device' };
+    if (/premium/i.test(msg)) return { ok: false, error: 'premium_required' };
+    if (res.status === 403) return { ok: false, error: msg };
+    return { ok: false, error: msg };
+  }
+
+  // Doğrula: gerçekten çalıyor mu? Duraklatılmış/yönlendirilmemişse transfer edip tekrar dene.
   try {
-    const devices = await getDevices();
-    target = devices.find((d) => d.is_active) || devices.find((d) => d.type === 'Computer' || d.type === 'Speaker') || devices[0];
-  } catch { /* cihaz listesi alınamazsa cihaz belirtmeden dene */ }
-  const pathname = '/v1/me/player/play' + (target && target.id ? '?device_id=' + encodeURIComponent(target.id) : '');
-  const res = await apiJson(pathname, 'PUT', token, { uris });
-  if (res.status === 204 || res.status === 202) return { ok: true };
-  const msg = res.json && res.json.error && res.json.error.message ? res.json.error.message : ('HTTP ' + res.status);
-  if (/no active device/i.test(msg)) return { ok: false, error: 'no_active_device' };
-  return { ok: false, error: msg };
+    const cur = await apiJson('/v1/me/player', 'GET', token);
+    if (cur.json) diag('after: is_playing=' + cur.json.is_playing + ' item=' + (cur.json.item && cur.json.item.name) + ' dev=' + (cur.json.device && cur.json.device.name) + ' vol=' + (cur.json.device && cur.json.device.volume_percent) + ' devActive=' + (cur.json.device && cur.json.device.is_active));
+    if (cur.json && cur.json.is_playing === false) {
+      try { await apiJson('/v1/me/player', 'PUT', token, { device_ids: [target.id], play: true }); } catch { /* yok */ }
+      await doPlay();
+      const cur2 = await apiJson('/v1/me/player', 'GET', token);
+      diag('after2: is_playing=' + (cur2.json && cur2.json.is_playing) + ' item=' + (cur2.json && cur2.json.item && cur2.json.item.name));
+      if (cur2.json && cur2.json.is_playing === false) return { ok: false, error: 'playback_not_started' };
+    }
+  } catch { /* yok */ }
+
+  return { ok: true };
+}
+
+// Spotify uygulamasında aç (derin bağlantı). Ücretsiz hesapta API playback kapalı olduğu
+// için bu yol kullanılır: uygulama açılır ve parçayı çalmaya başlar.
+function openSpotifyUri(uri) {
+  return new Promise((resolve) => {
+    try { require('electron').shell.openExternal(uri); resolve({ ok: true }); }
+    catch (e) { resolve({ ok: false, error: e.message }); }
+  });
 }
 
 async function playQuery(query) {
@@ -245,9 +297,15 @@ async function playQuery(query) {
   if (!s.ok) return s;
   if (!s.tracks.length) return { ok: false, error: 'no_result' };
   const track = s.tracks[0];
+  try { fs.appendFileSync(require('./config').FILES.diag, new Date().toISOString() + ' spotify-play track="' + track.name + '" uri=' + track.uri + ' playable=' + track.playable + ' explicit=' + track.explicit + '\n'); } catch { /* yok */ }
   const p = await playUris([track.uri]);
-  if (!p.ok) return p;
-  return { ok: true, track };
+  if (p.ok) return { ok: true, track };
+  // API playback başlatamadı (Premium yok / cihaz yok / istemci duraklı) → uygulamada aç.
+  if (['premium_required', 'playback_not_started', 'no_active_device'].includes(p.error)) {
+    const r2 = await openSpotifyUri(track.uri);
+    if (r2.ok) return { ok: true, track, fallback: true };
+  }
+  return p;
 }
 
 module.exports = {

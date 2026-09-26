@@ -52,6 +52,37 @@ async function initLang() {
   document.documentElement.lang = LANG;
 }
 
+// ---------- Premium (marka + özellikler) ----------
+async function exportChats() {
+  try {
+    let md = '# Harley — sohbet disa aktarimi\n\n';
+    for (const s of (sessions || [])) {
+      md += '## ' + (s.title || 'Sohbet') + '\n\n';
+      for (const m of (s.messages || [])) {
+        md += (m.role === 'user' ? '**Sen:** ' : '**Harley:** ') + String(m.text || '') + '\n\n';
+      }
+    }
+    const r = await window.assistant.premium.saveFile({ suggestedName: 'harley-sohbetler.md', content: md });
+    if (r && r.ok) showToast('Kaydedildi: ' + r.path);
+  } catch { /* yok */ }
+}
+async function applyPremium() {
+  if (!window.assistant.premium || !window.assistant.premium.status) return;
+  let st; try { st = await window.assistant.premium.status(); } catch { return; }
+  if (!st || !st.active) return;
+  try { document.title = st.name; } catch { /* yok */ }
+  const title = document.querySelector('.side-title');
+  if (title) title.textContent = st.name;
+  const badge = $('premium-badge');
+  if (badge && st.badge) { badge.textContent = st.badge; badge.classList.remove('hidden'); }
+  const ex = $('export-btn');
+  if (ex && st.features && st.features.exportChats) {
+    ex.classList.remove('hidden');
+    ex.addEventListener('click', exportChats);
+    setIcon(ex, 'book', 17);
+  }
+}
+
 const LS_SESSIONS = 'assistant_sessions_v1';
 const LS_MODEL = 'assistant_model';
 const LS_THEME = 'harley_theme';
@@ -2528,6 +2559,7 @@ async function openProjectSearch(name, dir) {
 (async function init() {
   await initLang();
   applyI18n();
+  applyPremium();
   // Dinamik eklenen metinleri otomatik çevir (EN modunda, sözlükte karşılığı varsa).
   if (LANG === 'en' && window.MutationObserver) {
     const obs = new MutationObserver((muts) => {

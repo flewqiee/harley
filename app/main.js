@@ -29,6 +29,9 @@ const testRunner = require('./test-runner');
 const github = require('./github');
 const secureStore = require('./secure-store');
 const i18n = require('./i18n');
+// Premium modülü (public repo'da yoktur). Varsa ve ayarda premium=1 ise özellikler açılır.
+let PREMIUM = null;
+try { PREMIUM = require('./premium'); } catch { PREMIUM = null; }
 let I18N_EN = {};
 try { I18N_EN = require('./locales.json').en || {}; } catch { I18N_EN = {}; }
 // Main süreçte TR kaynak → EN çeviri (kullanıcıya görünen bildirim/mesajlar için).
@@ -1056,11 +1059,14 @@ const TOOL_HANDLERS = {
     if (r.error === 'no_result') return 'Spotify\'da "' + q + '" bulunamadı.';
     if (r.error === 'not_authorized') return 'Spotify oturumu yok — Bağlantılar panelinden tekrar "Bağlan" de.';
     if (r.error === 'no_active_device') return 'Çalacak açık bir Spotify cihazı yok — Spotify masaüstü uygulamasını aç ve tekrar dene.';
-    if (/premium/i.test(String(r.error || ''))) return 'Spotify şarkı başlatmak için Premium hesap gerekiyor (Spotify kısıtı).';
+    if (/premium/i.test(String(r.error || ''))) return 'Spotify şarkı başlatmak için **Premium** hesap gerekiyor (Spotify kısıtı).';
+    if (r.error === 'playback_not_started') return 'Spotify çalmayı başlatmadı — hesabın **Premium** olmayabilir ya da masaüstü uygulaması duraklı/çevrimdışı. Spotify masaüstü açık ve Premium ise tekrar dene.';
     if (!r.ok) return 'Çalınamadı: ' + (r.error || 'bilinmeyen hata');
     spotify.clearCache();
     for (const w of BrowserWindow.getAllWindows()) { try { w.webContents.send('spotify:refresh'); } catch { /* yok */ } }
-    return 'Şimdi çalıyor: ' + r.track.name + ' — ' + r.track.artist;
+    return r.fallback
+      ? 'Spotify uygulamasında açtım: "' + r.track.name + '" — ' + r.track.artist + '. (Ücretsiz hesapta çalmayı Spotify uygulaması başlatır.)'
+      : 'Şimdi çalıyor: ' + r.track.name + ' — ' + r.track.artist;
   },
   workspace_list: async (a, sessionId) => {
     const r = workspace.safeList(sessionId, a && a.path);
@@ -1836,6 +1842,8 @@ ipcMain.handle('chat:models', () => {
       return false;
     }
   };
+  // Premium aktif mi? (modül var + ayarda premium=1)
+  const premiumActive = () => !!(PREMIUM && PREMIUM.available && loadSettings().premium === true);
   // Kişisel ayarlar → modelin profile metnine eklenir (tarzı ona göre şekillenir).
   // === PERSONA: Harley'nin kimliği, davranış kuralları, dil bilgisi ===
   const PERSONA = [
@@ -1996,6 +2004,26 @@ ipcMain.handle('chat:models', () => {
   ipcMain.handle('i18n:lang', () => i18n.getLang());
   ipcMain.handle('i18n:data', () => ({ lang: i18n.getLang(), en: I18N_EN }));
 
+  // ---------- Premium ----------
+  ipcMain.handle('premium:status', () => {
+    const active = premiumActive();
+    return {
+      available: !!(PREMIUM && PREMIUM.available),
+      active,
+      name: (PREMIUM && PREMIUM.name) || 'Harley',
+      badge: (PREMIUM && PREMIUM.badge) || '',
+      features: active ? Object.assign({}, PREMIUM.features) : {},
+    };
+  });
+  ipcMain.handle('premium:saveFile', async (_e, { suggestedName, content } = {}) => {
+    if (!premiumActive()) return { ok: false, message: 'premium' };
+    const win = BrowserWindow.getFocusedWindow() || mainWindow;
+    const r = await dialog.showSaveDialog(win, { defaultPath: suggestedName || 'harley-export.txt' });
+    if (r.canceled || !r.filePath) return { ok: false, canceled: true };
+    try { fs.writeFileSync(r.filePath, String(content || ''), 'utf8'); return { ok: true, path: r.filePath }; }
+    catch (e) { return { ok: false, message: e.message }; }
+  });
+
   // ---------- Güncelleme kontrolü ----------
   ipcMain.handle('app:version', () => app.getVersion());
   ipcMain.handle('app:checkUpdates', async () => {
@@ -2026,7 +2054,7 @@ ipcMain.handle('chat:models', () => {
     const BUDGET_FILE = FILES.tokenBudget;
     let _tb = { used: 0, bypass: false };
     try { _tb = Object.assign(_tb, JSON.parse(fs.readFileSync(BUDGET_FILE, 'utf8'))); } catch { /* yok */ }
-    const BUDGET_MAX = parseInt(process.env.HARLEY_TOKEN_BUDGET || '100000', 10);
+    const BUDGET_MAX = parseInt(process.env.HARLEY_TOKEN_BUDGET || String((premiumActive() && PREMIUM.budget) || '100000'), 10);
     const _tbSave = () => { try { fs.writeFileSync(BUDGET_FILE, JSON.stringify(_tb)); } catch { /* yok */ } };
     const _tbEstimate = (s) => Math.ceil(String(s || '').length / 3);
     const _raw = String(chatInput || '').trim();

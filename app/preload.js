@@ -126,6 +126,10 @@ contextBridge.exposeInMainWorld('assistant', {
     reset: () => ipcRenderer.invoke('data:reset'),
   },
   appReload: () => ipcRenderer.invoke('app:reload'),
+  premium: {
+    status: () => ipcRenderer.invoke('premium:status'),
+    saveFile: (opts) => ipcRenderer.invoke('premium:saveFile', opts),
+  },
   updates: {
     version: () => ipcRenderer.invoke('app:version'),
     check: () => ipcRenderer.invoke('app:checkUpdates'),

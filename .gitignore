@@ -14,6 +14,9 @@ app/dist/
 # Yerel ajan/araç yapılandırması (API anahtarları içerir — commit'lenmez)
 opencode.json
 
+# Premium modül — public repo'ya GİRMEZ (satılabilir özellikler)
+app/premium/
+
 # Kullanıcı verileri ve gizli anahtarlar (ev klasöründe tutulur, repoda değil)
 HarleyDosyalar/
 deepseek-config.json

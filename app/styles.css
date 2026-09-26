@@ -199,7 +199,20 @@ button { font-family: inherit; }
   cursor: pointer;
   box-shadow: var(--shadow-sm);
 }
-.side-brand { flex: 1; min-width: 0; }
+.side-brand { flex: 1; min-width: 0; display: flex; align-items: center; }
+.premium-badge {
+  margin-left: 6px;
+  font-family: var(--ui, inherit);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #e5823d, #f0c27a);
+  color: #16100a;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
 .side-title {
   font-family: var(--brand);
   font-size: 20px;

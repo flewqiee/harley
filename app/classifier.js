@@ -822,8 +822,10 @@ registerSkill({
     if (r.error === 'not_authorized') return 'Spotify hesabına henüz bağlı değilim. "Spotify bağla" de.';
     if (r.error === 'no_result') return 'Spotify\'da "' + query + '" diye bir şarkı bulamadım.';
     if (r.error === 'no_active_device') return 'Çalacak aktif bir Spotify cihazı bulamadım. Spotify uygulamasının açık olduğundan emin ol, sonra tekrar dene.';
-    if (/premium/i.test(String(r.error || ''))) return 'Spotify\'da şarkı başlatmak için Premium hesap gerekiyor (Spotify kısıtı).';
+    if (/premium/i.test(String(r.error || ''))) return 'Spotify\'da şarkı başlatmak için **Premium** hesap gerekiyor (Spotify kısıtı).';
+    if (r.error === 'playback_not_started') return 'Spotify çalmayı başlatmadı — hesabın **Premium** olmayabilir ya da masaüstü uygulaması duraklı/çevrimdışı. Spotify masaüstü açık ve Premium ise tekrar dene.';
     if (!r.ok) return 'Şarkıyı çalarken hata oldu: ' + (r.error || 'Bilinmeyen');
+    if (r.fallback) return 'Spotify uygulamasında açtım: "' + r.track.name + '" — ' + r.track.artist + '. (Ücretsiz hesapta çalmayı Spotify uygulaması başlatır.)';
     return 'Şimdi Spotify\'da "' + r.track.name + '" — ' + r.track.artist + ' çalıyor. 🎵';
   },
 });
