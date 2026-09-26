@@ -825,7 +825,7 @@ registerSkill({
     if (/premium/i.test(String(r.error || ''))) return 'Spotify\'da şarkı başlatmak için **Premium** hesap gerekiyor (Spotify kısıtı).';
     if (r.error === 'playback_not_started') return 'Spotify çalmayı başlatmadı — hesabın **Premium** olmayabilir ya da masaüstü uygulaması duraklı/çevrimdışı. Spotify masaüstü açık ve Premium ise tekrar dene.';
     if (!r.ok) return 'Şarkıyı çalarken hata oldu: ' + (r.error || 'Bilinmeyen');
-    if (r.fallback) return 'Spotify uygulamasında açtım: "' + r.track.name + '" — ' + r.track.artist + '. (Doğrudan başlatılamadı — Spotify uygulaması çalıyor.)';
+    if (r.fallback) return 'Spotify\'da açtım: "' + r.track.name + '" — ' + r.track.artist + ' 🎵';
     return 'Şimdi Spotify\'da "' + r.track.name + '" — ' + r.track.artist + ' çalıyor. 🎵';
   },
 });

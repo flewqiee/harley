@@ -318,23 +318,11 @@ async function playQuery(query) {
   if (!s.ok) return s;
   if (!s.tracks.length) return { ok: false, error: 'no_result' };
   const track = s.tracks[0];
-  try { fs.appendFileSync(require('./config').FILES.diag, new Date().toISOString() + ' spotify-play track="' + track.name + '" uri=' + track.uri + ' playable=' + track.playable + '\n'); } catch { /* yok */ }
-
-  // ÜCRETSİZ hesap: API ile çalmaya izin yok → doğrudan uygulamada aç ve öne getir.
-  const premium = await isPremiumAccount();
-  if (!premium) {
-    const r0 = await openSpotifyUri(track.uri);
-    if (r0.ok) { setTimeout(focusSpotify, 1200); return { ok: true, track, fallback: true }; }
-  }
-
-  const p = await playUris([track.uri]);
-  if (p.ok) return { ok: true, track };
-  // API playback başlatamadı (cihaz yok / istemci duraklı) → uygulamada aç.
-  if (['premium_required', 'playback_not_started', 'no_active_device'].includes(p.error)) {
-    const r2 = await openSpotifyUri(track.uri);
-    if (r2.ok) { setTimeout(focusSpotify, 1200); return { ok: true, track, fallback: true }; }
-  }
-  return p;
+  // Güvenilir yol (hesap türünden bağımsız): şarkıyı Spotify uygulamasında aç + pencereyi öne getir.
+  const r = await openSpotifyUri(track.uri);
+  if (!r.ok) return { ok: false, error: r.error || 'open_failed' };
+  setTimeout(focusSpotify, 1200);
+  return { ok: true, track, fallback: true };
 }
 
 module.exports = {

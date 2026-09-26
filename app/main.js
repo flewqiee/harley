@@ -1064,9 +1064,7 @@ const TOOL_HANDLERS = {
     if (!r.ok) return 'Çalınamadı: ' + (r.error || 'bilinmeyen hata');
     spotify.clearCache();
     for (const w of BrowserWindow.getAllWindows()) { try { w.webContents.send('spotify:refresh'); } catch { /* yok */ } }
-    return r.fallback
-      ? 'Spotify uygulamasında açtım: "' + r.track.name + '" — ' + r.track.artist + '. (Doğrudan başlatılamadı — Spotify uygulaması çalıyor.)'
-      : 'Şimdi çalıyor: ' + r.track.name + ' — ' + r.track.artist;
+    return 'Spotify\'da açtım: "' + r.track.name + '" — ' + r.track.artist + ' 🎵';
   },
   workspace_list: async (a, sessionId) => {
     const r = workspace.safeList(sessionId, a && a.path);
