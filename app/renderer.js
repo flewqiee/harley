@@ -2463,7 +2463,7 @@ async function renderHub() {
       g.items.map((it) => '<button class="bag-item" data-q="' + escapeHtml(it.q).replace(/"/g, '&quot;') + '">' + escapeHtml(it.t) + '</button>').join('') +
       '</div>').join('');
     hp.querySelectorAll('.bag-item').forEach((b) =>
-      b.addEventListener('click', () => { showChat(); inputEl.value = b.dataset.q; inputEl.focus(); }));
+      b.addEventListener('click', () => { showChat(); send(b.dataset.q); }));
   }
 }
 function escapeHtml(s) {
@@ -3006,10 +3006,9 @@ async function openProjectSearch(name, dir) {
     pair.pop.querySelectorAll('.bag-item').forEach((b) =>
       b.addEventListener('click', () => {
         _bagCloseAll();
-        // Otomatik gönderme — prompt'u yazı kutusuna doldur, kullanıcı elle gönderir
-        inputEl.value = b.dataset.q;
-        inputEl.focus();
         showChat();
+        // Tıklayınca doğrudan gönder
+        send(b.dataset.q);
       }));
   });
   document.addEventListener('click', (e) => {

@@ -921,6 +921,8 @@ const TOOLS = [
   { type: 'function', function: { name: 'daily_motivation', description: 'Günlük ilham verici bir söz döndürür. Kullanıcı motivasyon/ilham istediğinde çağır.', parameters: { type: 'object', properties: {}, required: [] } } },
   { type: 'function', function: { name: 'fun_fact', description: 'İlginç/şaşırtıcı bir bilgi döndürür. Kullanıcı ilginç bilgi istediğinde çağır.', parameters: { type: 'object', properties: {}, required: [] } } },
   { type: 'function', function: { name: 'song_of_day', description: 'Günün şarkısını önerir. Kullanıcı günün şarkısını istediğinde çağır.', parameters: { type: 'object', properties: {}, required: [] } } },
+  { type: 'function', function: { name: 'hava_durumu', description: 'Belirtilen şehir için GÜNCEL hava durumunu döndürür. Kullanıcı hava durumunu/havayı sorduğunda MUTLAKA bunu çağır (web araması YAPMA). Şehir verilmezse kullanıcının ayarlardaki şehri kullanılır.', parameters: { type: 'object', properties: { sehir: { type: 'string', description: 'Şehir adı, örn. İstanbul. Boş bırakılırsa ayarlardaki şehir.' } }, required: [] } } },
+  { type: 'function', function: { name: 'spotify_play', description: 'Spotify\'da belirtilen şarkıyı/sanatçıyı çalar. Kullanıcı "şu şarkıyı çal / müzik aç" dediğinde çağır. Spotify\'ın bağlı ve masaüstü uygulamasının açık olması gerekir.', parameters: { type: 'object', properties: { sarki: { type: 'string', description: 'Şarkı adı ve/veya sanatçı, örn. "Sezen Aksu" veya "Shape of You"' } }, required: ['sarki'] } } },
   { type: 'function', function: { name: 'workspace_list', description: 'Bu sohbete bağlı çalışma klasöründeki dosya/klasörleri listeler.', parameters: { type: 'object', properties: { path: { type: 'string', description: 'Klasöre göre göreli yol. Boşsa kök.' } }, required: [] } } },
   { type: 'function', function: { name: 'workspace_read', description: 'Çalışma klasöründeki bir dosyanın içeriğini okur (kökten göreli yol).', parameters: { type: 'object', properties: { path: { type: 'string', description: 'Göreli dosya yolu, ör. src/app.js' } }, required: ['path'] } } },
   { type: 'function', function: { name: 'workspace_write', description: 'Çalışma klasörüne dosya yazar veya üzerine yazar (kökten göreli yol). Klasörler otomatik oluşturulur.', parameters: { type: 'object', properties: { path: { type: 'string', description: 'Göreli dosya yolu' }, content: { type: 'string', description: 'Dosya içeriği' } }, required: ['path', 'content'] } } },
@@ -1038,6 +1040,28 @@ const TOOL_HANDLERS = {
   daily_motivation: () => fun.dailyMotivation(),
   fun_fact: () => fun.funFact(),
   song_of_day: () => fun.songOfDay(),
+  hava_durumu: async (a) => {
+    const st = loadSettings();
+    const city = String((a && a.sehir) || st.city || '').trim() || 'Istanbul';
+    const w = await getWeather(city);
+    if (!w || w.sicaklik == null) return 'Hava durumu alınamadı (şehir bulunamadı veya internet yok).';
+    return w.sehir + ': ' + w.durum + ', şu an ' + w.sicaklik + '°C (en yüksek ' + w.max + '°, en düşük ' + w.min + '°), rüzgar ' + w.ruzgar + ' km/s, yağış olasılığı %' + w.yagis + '.';
+  },
+  spotify_play: async (a) => {
+    if (!spotifyWeb.isConfigured()) return 'Spotify bağlı değil — sol menüdeki "Bağlantılar" panelinden Client ID girip "Bağlan" de.';
+    const q = String((a && a.sarki) || '').trim();
+    if (!q) return 'Hangi şarkıyı çalayım?';
+    let r;
+    try { r = await spotifyWeb.playQuery(q); } catch (e) { return 'Spotify hatası: ' + (e && e.message ? e.message : e); }
+    if (r.error === 'no_result') return 'Spotify\'da "' + q + '" bulunamadı.';
+    if (r.error === 'not_authorized') return 'Spotify oturumu yok — Bağlantılar panelinden tekrar "Bağlan" de.';
+    if (r.error === 'no_active_device') return 'Çalacak açık bir Spotify cihazı yok — Spotify masaüstü uygulamasını aç ve tekrar dene.';
+    if (/premium/i.test(String(r.error || ''))) return 'Spotify şarkı başlatmak için Premium hesap gerekiyor (Spotify kısıtı).';
+    if (!r.ok) return 'Çalınamadı: ' + (r.error || 'bilinmeyen hata');
+    spotify.clearCache();
+    for (const w of BrowserWindow.getAllWindows()) { try { w.webContents.send('spotify:refresh'); } catch { /* yok */ } }
+    return 'Şimdi çalıyor: ' + r.track.name + ' — ' + r.track.artist;
+  },
   workspace_list: async (a, sessionId) => {
     const r = workspace.safeList(sessionId, a && a.path);
     return r.ok ? (r.items.length ? r.items.map((x) => (x.isDir ? '[K] ' : '    ') + x.name).join('\n') : '(boş)') : r.error;
@@ -1856,6 +1880,7 @@ ipcMain.handle('chat:models', () => {
     const lines = [];
     if (s.name) lines.push('* Ad: ' + s.name);
     if (s.address) lines.push('* Hitap: ' + s.address);
+    if (s.city) lines.push('* Şehir: ' + s.city + ' (hava durumu sorularında bu şehri kullan)');
     if (s.style && s.style !== 'orta') lines.push('* Cevap stili: ' + (s.style === 'kısa' ? 'kısa ve öz' : 'detaylı ve kapsamlı'));
     if (s.emoji === false) lines.push('* Emoji: KESİNLİKLE KULLANMA — hiçbir cevapta, hiçbir yerde emoji yok.');
     if (s.emoji === true) lines.push('* Emoji: kullanabilirsin');
