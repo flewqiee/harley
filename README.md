@@ -20,7 +20,7 @@ Hiçbir ara sunucu yok.
 
 ---
 
-## ✨ Harley nedir?
+##  Harley nedir?
 
 Harley, bilgisayarında yaşayan samimi bir AI asistanıdır: sohbet eder, kod yazar,
 projelerini geliştirir, GitHub'a gönderir, takvimini/e-postanı okur, müzik çalar ve
@@ -181,9 +181,7 @@ kullanılabilmesi adına bir **CLA** onayı istenir — ayrıntı: [docs/LICENSI
 Harley tamamen **ücretsiz** ve açık kaynak. Geliştirmeye devam etmemi desteklemek istersen
 (Türkiye):
 
-- **Papara:** `<Papara numaranı buraya ekle>`
-- **IBAN (havale/EFT):** `<IBAN'ını buraya ekle>`
-- **Kredi kartı (Shopier):** `<Shopier linkini buraya ekle>`
+- **ByNoGame:** `https://donate.bynogame.com/flewqiee`
 
 ## 📄 Lisans
 
