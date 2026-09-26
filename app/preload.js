@@ -6,8 +6,8 @@ contextBridge.exposeInMainWorld('assistant', {
     data: () => ipcRenderer.invoke('i18n:data'),
   },
   models: () => ipcRenderer.invoke('chat:models'),
-  send: (chatInput, model, sessionId, history) =>
-    ipcRenderer.invoke('chat:send', { chatInput, model, sessionId, history }),
+  send: (chatInput, model, sessionId, history, images) =>
+    ipcRenderer.invoke('chat:send', { chatInput, model, sessionId, history, images }),
   onChunk: (cb) =>
     ipcRenderer.on('chat:chunk', (_e, p) => cb(p)),
   stop: () => ipcRenderer.invoke('chat:stop'),

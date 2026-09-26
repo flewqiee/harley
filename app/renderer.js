@@ -12,6 +12,7 @@ const $ = (id) => document.getElementById(id);
 
 // ---------- i18n (TR kaynak → EN) ----------
 let LANG = 'tr';
+let premiumFeatures = {};
 const LOCALES = { en: {} };
 // t('Türkçe kaynak', {degisken}) → EN modunda çevirir; anahtar yoksa Türkçe kalır.
 function t(s, vars) {
@@ -70,9 +71,9 @@ async function applyPremium() {
   if (!window.assistant.premium || !window.assistant.premium.status) return;
   let st; try { st = await window.assistant.premium.status(); } catch { return; }
   if (!st || !st.active) return;
+  premiumFeatures = st.features || {};
   try { document.title = st.name; } catch { /* yok */ }
-  const title = document.querySelector('.side-title');
-  if (title) title.textContent = st.name;
+  // Sidebar başlığını "Harley" bırak; premium'u rozetle göster (uzun isim kırpılmasın).
   const badge = $('premium-badge');
   if (badge && st.badge) { badge.textContent = st.badge; badge.classList.remove('hidden'); }
   const ex = $('export-btn');
@@ -195,6 +196,51 @@ let models = [];
 let streamSessionId = null;
 let streamMsgEl = null;
 let attachedFiles = []; // Ekli dosyalar (dosya ekleme preview)
+
+// Ekli dosya önizlemesini çiz. ÜST DÜZEY (send() buradan çağırır).
+function renderFilePreview() {
+  const wrap = $('file-preview');
+  const inner = $('file-preview-inner');
+  if (!inner) return;
+  inner.innerHTML = '';
+  if (!attachedFiles.length) { if (wrap) wrap.classList.add('hidden'); return; }
+  if (wrap) wrap.classList.remove('hidden');
+  attachedFiles.forEach((f, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'file-chip';
+    if (f.preview) {
+      const img = document.createElement('img');
+      img.className = 'file-chip-preview';
+      img.src = f.preview;
+      chip.appendChild(img);
+    } else {
+      const iconDiv = document.createElement('div');
+      iconDiv.className = 'file-chip-icon';
+      const isPdf = f.name && f.name.toLowerCase().endsWith('.pdf');
+      const isImage = f.type === 'image' || (f.name && /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(f.name));
+      if (isPdf) {
+        iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+      } else if (isImage) {
+        iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+      } else {
+        iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>';
+      }
+      chip.appendChild(iconDiv);
+    }
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'file-chip-name';
+    nameSpan.textContent = f.name;
+    nameSpan.title = f.name;
+    chip.appendChild(nameSpan);
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'file-chip-remove';
+    removeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    removeBtn.title = 'Kaldır';
+    removeBtn.addEventListener('click', () => { attachedFiles.splice(idx, 1); renderFilePreview(); });
+    chip.appendChild(removeBtn);
+    inner.appendChild(chip);
+  });
+}
 
 // ---------- persistence ----------
 function loadSessions() {
@@ -1003,14 +1049,16 @@ async function send(text) {
   if (!activeSession()) newSession();
   showChat(); // sohbete geçildi — hub arka planda
 
-  // Ekli dosyaları mesaja ekle (fotoğrafsa önce yerel modelle analiz edip metne çevir)
+  // Ekli dosyaları mesaja ekle (görsel premium'da modele görsel olarak gider)
+  const images = [];
   if (attachedFiles && attachedFiles.length > 0) {
     const extra = [];
     for (const f of attachedFiles) {
-      if (f.type === 'text' && f.content) {
+      if (f.type === 'image' && f.content && String(f.content).startsWith('data:') && premiumFeatures.vision) {
+        images.push(f.content); // premium: görseli modele gönder
+      } else if (f.type === 'text' && f.content) {
         extra.push('📎 ' + f.name + ' dosyası eklendi:\n' + f.content.slice(0, 12000));
-      } else if (f.type === 'image' && f.content) {
-        // Görüntü analizi kaldırıldı (Ollama/moondream ile birlikte). Harley görsele bakamaz.
+      } else if (f.type === 'image') {
         extra.push('📎 ' + f.name + ' (görsel ek). Not: Harley görselleri inceleyemiyor — resmi yazıyla anlat, ayrıca sorabilirsin.');
       } else {
         extra.push('📎 ' + f.name + (f.note ? ' (' + f.note + ')' : ' dosyası eklendi.'));
@@ -1067,7 +1115,7 @@ async function send(text) {
       .map((m) => (m.role === 'user' ? 'Kullanıcı: ' : 'Harley: ') + String(m.text || '').replace(/\s+/g, ' ').trim().slice(0, 4000))
       .join('\n');
     const _sendStart = Date.now();
-    const res = await window.assistant.send(q, modelSelect.value, s.id, history);
+    const res = await window.assistant.send(q, modelSelect.value, s.id, history, images);
     // Uzun görev bittiğinde sistem bildirimi (eğer uygulama arka plandaysa görünür)
     if (Date.now() - _sendStart > 15000 && res && res.output) {
       try { new Notification('Harley', { body: 'Uzun görev tamamlandı: ' + q.slice(0, 60) }).show(); } catch { /* yok */ }
@@ -2730,55 +2778,6 @@ async function openProjectSearch(name, dir) {
     });
   }
 
-  function renderFilePreview() {
-    if (!filePreviewInner) return;
-    filePreviewInner.innerHTML = '';
-    if (attachedFiles.length === 0) {
-      if (filePreviewEl) filePreviewEl.classList.add('hidden');
-      return;
-    }
-    if (filePreviewEl) filePreviewEl.classList.remove('hidden');
-    attachedFiles.forEach((f, idx) => {
-      const chip = document.createElement('div');
-      chip.className = 'file-chip';
-      // Önizleme: fotoğraf varsa img, PDF ise icon, diğerleri icon
-      if (f.preview) {
-        const img = document.createElement('img');
-        img.className = 'file-chip-preview';
-        img.src = f.preview;
-        chip.appendChild(img);
-      } else {
-        const iconDiv = document.createElement('div');
-        iconDiv.className = 'file-chip-icon';
-        const isPdf = f.name && f.name.toLowerCase().endsWith('.pdf');
-        const isImage = f.type === 'image' || (f.name && /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(f.name));
-        if (isPdf) {
-          iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
-        } else if (isImage) {
-          iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
-        } else {
-          iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>';
-        }
-        chip.appendChild(iconDiv);
-      }
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'file-chip-name';
-      nameSpan.textContent = f.name;
-      nameSpan.title = f.name;
-      chip.appendChild(nameSpan);
-      // Çarpı butonu
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'file-chip-remove';
-      removeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-      removeBtn.title = 'Kaldır';
-      removeBtn.addEventListener('click', () => {
-        attachedFiles.splice(idx, 1);
-        renderFilePreview();
-      });
-      chip.appendChild(removeBtn);
-      filePreviewInner.appendChild(chip);
-    });
-  }
 
   if (attachBtn) {
     attachBtn.addEventListener('click', async () => {

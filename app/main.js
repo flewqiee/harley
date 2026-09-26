@@ -2047,7 +2047,7 @@ ipcMain.handle('chat:models', () => {
     return m;
   }
 
-  ipcMain.handle('chat:send', async (_event, { chatInput, model, sessionId, history }) => {
+  ipcMain.handle('chat:send', async (_event, { chatInput, model, sessionId, history, images }) => {
     // ---- Token bütçesi koruması (tek projede aşırı harcamayı engelle) ----
     // Oturum başına birikimli tahmini token sayısı tutulur; bütçe dolunca model
     // çağrılmaz (bütçe korumasını kaldırmadan). Bütçe değeri env veya dosyadan okunur.
@@ -2262,7 +2262,15 @@ ipcMain.handle('chat:models', () => {
         };
         // DeepSeek function-calling: model gerekirse Google/hafıza araçlarını kendisi çağırır.
         // Başarısız olursa düz akışlı sohbete düşer (retry akışında tekrar denenir).
-        const messages = [{ role: 'system', content: PERSONA_TEXT + (profile ? '\nKULLANICI PROFİLİ:\n' + profile : '') }, { role: 'user', content: chatInput }];
+        const sysContent = PERSONA_TEXT + (profile ? '\nKULLANICI PROFİLİ:\n' + profile : '');
+    // Premium görsel analiz: resimleri modele görsel olarak gönder (DeepSeek V4.1 Flash vision).
+    let userContent = chatInput;
+    const visionModel = (webhook && webhook.modelId) === 'deepseek-flash';
+    if (Array.isArray(images) && images.length && visionModel && premiumActive() && PREMIUM.features && PREMIUM.features.vision) {
+      userContent = [{ type: 'text', text: chatInput }].concat(images.slice(0, 4).map((u) => ({ type: 'image_url', image_url: { url: u } })));
+    }
+    const messages = [{ role: 'system', content: sysContent }, { role: 'user', content: userContent }];
+    if (Array.isArray(images) && images.length) { try { diag('chat images=' + images.length + ' visionModel=' + visionModel + ' premium=' + premiumActive()); } catch { /* yok */ } }
         const executeTool = async (name, args) => {
   const h = TOOL_HANDLERS[name];
   if (!h) return 'Bilinmeyen araç: ' + name;
@@ -2777,7 +2785,15 @@ ipcMain.handle('chat:models', () => {
     const name = path.basename(filePath);
     const size = fs.statSync(filePath).size;
     if (IMG_EXTS.includes(ext)) {
-      return { name, type: 'image', content: null, note: 'Görsel dosya — Harley görseli göremez; içerik eklenmedi.' };
+      // Premium görsel analiz için resmi base64 data URL olarak ver (boyut sınırı: 8 MB).
+      try {
+        if (size > 8 * 1024 * 1024) return { name, type: 'image', content: null, note: 'Görsel 8 MB\'tan büyük — eklenemedi.' };
+        const mime = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : ext === '.webp' ? 'image/webp' : ext === '.bmp' ? 'image/bmp' : ext === '.ico' ? 'image/x-icon' : 'image/jpeg';
+        const b64 = fs.readFileSync(filePath).toString('base64');
+        return { name, type: 'image', content: 'data:' + mime + ';base64,' + b64, note: '' };
+      } catch (e) {
+        return { name, type: 'image', content: null, note: 'Görsel okunamadı: ' + e.message };
+      }
     }
     if (size > 500000) {
       return { name, type: 'file', content: null, note: 'Dosya 500 KB\'tan büyük — içerik okunamadı, yalnızca ad eklendi.' };
