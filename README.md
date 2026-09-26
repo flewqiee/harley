@@ -114,4 +114,26 @@ Windows'ta `deploy.bat` yardımcı betiği derler ve `%USERPROFILE%\Harley` konu
 
 ## Lisans
 
-[Apache License 2.0](LICENSE) © 2026 Umut Efe Kurucay
+**GNU GPLv3 (veya sonrası).** Telif: © 2026 Umut Efe Kurucay.
+
+Bu **güçlü copyleft** bir lisanstır: kodu kullanan/değiştiren ve dağıtan herkes, dağıttığı
+sürümü de **GPLv3 + açık kaynak** yapmak zorundadır. Böylece kimse Harley'i alıp **kapalı
+kaynak** bir ürüne dönüştürüp satamaz.
+
+**Çift lisanslama (Pro/Premium):** Telif hakkı sahibi olarak, aynı kodu ayrıca **ticari
+lisans** altında sunma hakkım saklıdır. İleride "Pro/Premium" sürümler ayrı ticari lisansla
+satılabilir. Ayrıntı ve katkı (CLA) kuralı: [docs/LICENSING.md](docs/LICENSING.md).
+
+> Not: 0.11.0'dan önce Apache-2.0 ile yayınlanan sürümler o lisansla kalır; GPL, **yeni**
+> sürümler için geçerlidir.
+
+## Destek / Bağış
+
+Harley'i geliştirmeye devam etmemi desteklemek istersen (Türkiye):
+
+- **Papara:** `<Papara numaranı buraya ekle>`
+- **IBAN (havale/EFT):** `<IBAN'ını buraya ekle>`
+- **Kredi kartı (Shopier):** `<Shopier ürün/bağış linkini buraya ekle>`
+
+> Yukarıdaki alanları kendi bilgilerinle doldur; bağış tamamen isteğe bağlıdır, uygulama
+> tüm özellikleriyle ücretsizdir.
