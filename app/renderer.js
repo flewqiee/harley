@@ -2766,11 +2766,6 @@ async function openProjectSearch(name, dir) {
     });
   }
 
-  if (attachBtn) {
-    attachBtn.addEventListener('click', () => {
-      if (fileInput) fileInput.click();
-    });
-  }
   if (fileInput) {
     fileInput.addEventListener('change', async () => {
       const f = fileInput.files && fileInput.files[0];
