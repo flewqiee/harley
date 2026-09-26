@@ -6,7 +6,8 @@ const USERPROFILE = process.env.USERPROFILE || '';
 const HOME = process.env.HOME || USERPROFILE;
 
 // HarleyDosyalar: kullanıcı verilerinin (Google/DeepSeek/Spotify kimlikleri, bütçe, vs.) tutulduğu ana klasör.
-const HARLEY_DIR = path.join(USERPROFILE, 'HarleyDosyalar');
+// HARLEY_DATA_DIR ile farklı bir klasör verilebilir (aynı makinede ikinci bir profil/örnek için).
+const HARLEY_DIR = process.env.HARLEY_DATA_DIR || path.join(USERPROFILE, 'HarleyDosyalar');
 
 // Kişisel veri dosyaları
 const FILES = {
