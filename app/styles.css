@@ -435,11 +435,10 @@ button { font-family: inherit; }
 /* ---------- Focus panel ---------- */
 .focus-panel, .evolution-panel {
   width: min(430px, 92vw);
-  background: var(--bg);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 20px 22px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   display: flex; flex-direction: column; gap: 14px;
   box-shadow: 0 18px 50px rgba(0,0,0,0.35);
   animation: pop 0.22s ease;
@@ -449,7 +448,7 @@ button { font-family: inherit; }
 .focus-head button, .evolution-head button {
   background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px;
 }
-.focus-head button:hover, .evolution-head button:hover { color: var(--text); }
+.focus-head button:hover, .evolution-head button:hover { color: var(--ink); }
 .focus-hint { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5; }
 .focus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .focus-quick { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
@@ -3017,3 +3016,7 @@ html[data-theme="premium"] body { background: radial-gradient(1200px 600px at 80
 [data-theme="premium"] .hub-hero-btn { border-color: var(--line-2); color: #f2cd76; }
 [data-theme="premium"] #sidebar { box-shadow: inset -1px 0 0 rgba(201,150,47,.15); }
 [data-theme="premium"] .status-dot.on, [data-theme="premium"] .dot.ok { box-shadow: 0 0 8px rgba(227,182,78,.5); }
+
+/* Eksik degisken takma adlari (bazi bilesenler --bg/--text kullaniyordu) */
+:root { --bg: var(--canvas); --bg-2: var(--canvas-2); --text: var(--ink); }
+
