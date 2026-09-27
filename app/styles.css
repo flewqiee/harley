@@ -2998,3 +2998,22 @@ html[data-theme="premium"] body { background: radial-gradient(1200px 600px at 80
 [data-theme="premium"] .msg.user .bubble { box-shadow: 0 4px 16px rgba(201,150,47,.25); }
 [data-theme="premium"] .premium-badge,
 [data-theme="premium"] .side-sub { filter: drop-shadow(0 0 6px rgba(227,182,78,.4)); }
+
+/* ---------- Premium tema: zengin altin detaylar ---------- */
+[data-theme="premium"] header { border-bottom: 1px solid var(--line-2); background: linear-gradient(180deg, rgba(201,150,47,.10), transparent); }
+[data-theme="premium"] .side-head { background: linear-gradient(180deg, rgba(201,150,47,.12), transparent); }
+[data-theme="premium"] .hub-card { position: relative; overflow: hidden; }
+[data-theme="premium"] .hub-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, #e3b64e, transparent); opacity: .8; }
+[data-theme="premium"] .hub-card:hover { box-shadow: 0 10px 30px rgba(201,150,47,.18); }
+[data-theme="premium"] .usage-card, [data-theme="premium"] #usage-card { border-color: var(--line-2); }
+[data-theme="premium"] .premium-badge { animation: premiumGlow 2.6s ease-in-out infinite; }
+@keyframes premiumGlow { 0%,100% { box-shadow: 0 0 0 rgba(227,182,78,0); } 50% { box-shadow: 0 0 14px rgba(227,182,78,.55); } }
+[data-theme="premium"] .msg.user .bubble { color: #1a1206; }
+[data-theme="premium"] ::selection { background: rgba(227,182,78,.35); }
+[data-theme="premium"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #e3b64e, #b8860b); border-radius: 8px; }
+[data-theme="premium"] ::-webkit-scrollbar-thumb:hover { filter: brightness(1.1); }
+[data-theme="premium"] .splash-text { color: #f2cd76; letter-spacing: .04em; }
+[data-theme="premium"] .nav-btn:hover, [data-theme="premium"] .nav-btn.active { background: linear-gradient(135deg, rgba(227,182,78,.18), rgba(227,182,78,.06)); }
+[data-theme="premium"] .hub-hero-btn { border-color: var(--line-2); color: #f2cd76; }
+[data-theme="premium"] #sidebar { box-shadow: inset -1px 0 0 rgba(201,150,47,.15); }
+[data-theme="premium"] .status-dot.on, [data-theme="premium"] .dot.ok { box-shadow: 0 0 8px rgba(227,182,78,.5); }

@@ -292,6 +292,17 @@ function openSpotifyUri(uri) {
   });
 }
 
+// Şarkı açıldıktan sonra hâlâ duraklıysa medya oynatma tuşu gönder (başlasın).
+function ensurePlaying(delayMs) {
+  setTimeout(async () => {
+    try {
+      const spotify = require('./spotify');
+      const st = await spotify.getSpotifyStatus();
+      if (!st || !st.playing) await spotify.sendMediaKey('play');
+    } catch { /* yok */ }
+  }, delayMs || 3000);
+}
+
 // Spotify penceresini öne getir (kullanıcı sekmeye gitmek zorunda kalmasın).
 function focusSpotify() {
   return new Promise((resolve) => {
@@ -322,6 +333,7 @@ async function playQuery(query) {
   const r = await openSpotifyUri(track.uri);
   if (!r.ok) return { ok: false, error: r.error || 'open_failed' };
   setTimeout(focusSpotify, 1200);
+  ensurePlaying(3200); // açıldıktan sonra çalmaya başlamadıysa oynat
   return { ok: true, track, fallback: true };
 }
 

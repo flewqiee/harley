@@ -68,6 +68,16 @@ async function applyPremium() {
   const sub = document.querySelector('.side-sub');
   if (sub && st.badge) { sub.textContent = st.badge; sub.classList.remove('hidden'); }
   try { document.body.classList.add('premium'); } catch { /* yok */ }
+  // Premium varsayılan tema: Altın (kullanıcı bir kez seçim yapana kadar)
+  try {
+    if (!localStorage.getItem('harley_premium_defaulted')) {
+      localStorage.setItem('harley_premium_defaulted', '1');
+      applyTheme('premium');
+      try { await window.assistant.settings.set({ theme: 'premium' }); } catch { /* yok */ }
+    } else if ((localStorage.getItem(LS_THEME) || '') === 'premium') {
+      applyTheme('premium');
+    }
+  } catch { /* yok */ }
   // Premium açılış: splash hâlâ görünüyorsa yazıyı güncelle
   const splashText = document.querySelector('.splash-text');
   if (splashText) splashText.textContent = st.name;
