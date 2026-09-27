@@ -1868,7 +1868,7 @@ footer {
 }
 
 /* ---------- Overlays (settings + memory + focus + evolution) ---------- */
-#settings-overlay, #memory-overlay, #focus-overlay, #evolution-overlay, #personalization-overlay, #testrunner-overlay, #connections-overlay {
+#settings-overlay, #memory-overlay, #focus-overlay, #evolution-overlay, #personalization-overlay, #testrunner-overlay, #connections-overlay, #premium-activate-overlay {
   position: fixed;
   inset: 0;
   z-index: 40;

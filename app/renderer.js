@@ -54,12 +54,36 @@ async function initLang() {
 }
 
 // ---------- Premium (marka + özellikler) ----------
+function showPremiumActivation() {
+  const overlay = $('premium-activate-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('hidden');
+  const keyEl = $('premium-key');
+  const statusEl = $('premium-act-status');
+  const btn = $('premium-activate-btn');
+  const close = $('premium-act-close');
+  if (close) close.onclick = () => overlay.classList.add('hidden');
+  if (!btn || !keyEl) return;
+  btn.onclick = async () => {
+    const key = keyEl.value.trim();
+    if (statusEl) statusEl.textContent = 'Doğrulanıyor…';
+    let r; try { r = await window.assistant.premium.activate(key); } catch (e) { r = { ok: false, message: String(e.message || e) }; }
+    if (r && r.ok) { if (statusEl) statusEl.textContent = 'Etkinleştirildi — yeniden yükleniyor…'; setTimeout(reloadApp, 800); }
+    else if (statusEl) statusEl.textContent = (r && r.message) || 'Geçersiz lisans.';
+  };
+}
 async function applyPremium() {
   if (!window.assistant.premium || !window.assistant.premium.status) return;
   let st; try { st = await window.assistant.premium.status(); } catch { return; }
-  if (!st || !st.active) {
+  if (!st || !st.available) {
     // NORMAL sürüm: dosya ekleme tamamen gizli (görsel de metin de yok).
     const a = $('attach-btn'); if (a) a.style.display = 'none';
+    return;
+  }
+  if (!st.active) {
+    // Premium modül var ama lisans yok → ücretsiz davran; Ayarlar'da "etkinleştir" butonu göster.
+    const a = $('attach-btn'); if (a) a.style.display = 'none';
+    const po = $('premium-act-open'); if (po) { po.classList.remove('hidden'); po.onclick = showPremiumActivation; }
     return;
   }
   premiumFeatures = st.features || {};

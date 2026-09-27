@@ -33,6 +33,7 @@ const FILES = {
   projects: path.join(HARLEY_DIR, 'projects.json'),
   userPrefs: path.join(HARLEY_DIR, 'user-prefs.json'),
   connectionTests: path.join(HARLEY_DIR, 'connection-tests.json'),
+  premiumLicense: path.join(HARLEY_DIR, 'premium-license.txt'),
 };
 
 // Proje alanı (RAG, aktif proje işaretçisi)

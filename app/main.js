@@ -1840,8 +1840,13 @@ ipcMain.handle('chat:models', () => {
       return false;
     }
   };
-  // Premium aktif mi? (modül var + ayarda premium=1)
-  const premiumActive = () => !!(PREMIUM && PREMIUM.available && loadSettings().premium === true);
+  // Premium aktif mi? (modül var + geçerli lisans). Eski modül için ayar bayrağına düşer.
+  const readLicense = () => { try { return fs.readFileSync(FILES.premiumLicense, 'utf8').trim(); } catch { return ''; } };
+  const premiumActive = () => {
+    if (!PREMIUM || !PREMIUM.available) return false;
+    if (typeof PREMIUM.verifyLicense === 'function') return !!PREMIUM.verifyLicense(readLicense()).ok;
+    return loadSettings().premium === true;
+  };
   // Kişisel ayarlar → modelin profile metnine eklenir (tarzı ona göre şekillenir).
   // === PERSONA: Harley'nin kimliği, davranış kuralları, dil bilgisi ===
   const PERSONA = [
@@ -2004,14 +2009,32 @@ ipcMain.handle('chat:models', () => {
 
   // ---------- Premium ----------
   ipcMain.handle('premium:status', () => {
+    const available = !!(PREMIUM && PREMIUM.available);
     const active = premiumActive();
+    let info = {};
+    if (available && typeof PREMIUM.verifyLicense === 'function') { try { info = PREMIUM.verifyLicense(readLicense()); } catch { info = {}; } }
     return {
-      available: !!(PREMIUM && PREMIUM.available),
+      available,
       active,
+      needsActivation: available && !active,
       name: (PREMIUM && PREMIUM.name) || 'Harley',
       badge: (PREMIUM && PREMIUM.badge) || '',
       features: active ? Object.assign({}, PREMIUM.features) : {},
+      license: (info && info.data) || null,
     };
+  });
+  ipcMain.handle('premium:activate', async (_e, { key } = {}) => {
+    if (!PREMIUM || !PREMIUM.available || typeof PREMIUM.verifyLicense !== 'function') return { ok: false, message: 'Bu sürümde premium yok.' };
+    const r = PREMIUM.verifyLicense(String(key || '').trim());
+    if (!r.ok) {
+      const map = { empty: 'Lisans anahtarı boş.', format: 'Geçersiz anahtar biçimi.', signature: 'Lisans geçersiz (imza doğrulanamadı).', expired: 'Lisansın süresi dolmuş.', error: 'Anahtar okunamadı.' };
+      return { ok: false, message: map[r.reason] || 'Geçersiz lisans.' };
+    }
+    try {
+      fs.mkdirSync(CFG.HARLEY_DIR, { recursive: true });
+      fs.writeFileSync(FILES.premiumLicense, String(key).trim(), 'utf8');
+    } catch (e) { return { ok: false, message: 'Kaydedilemedi: ' + e.message }; }
+    return { ok: true, data: r.data };
   });
 
 

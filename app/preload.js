@@ -128,6 +128,7 @@ contextBridge.exposeInMainWorld('assistant', {
   appReload: () => ipcRenderer.invoke('app:reload'),
   premium: {
     status: () => ipcRenderer.invoke('premium:status'),
+    activate: (key) => ipcRenderer.invoke('premium:activate', { key }),
   },
   updates: {
     version: () => ipcRenderer.invoke('app:version'),

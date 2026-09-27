@@ -427,6 +427,11 @@
           </div>
           <small>Yedek, seçtiğin klasöre kopyalanır. Silme işlemi geri alınamaz.</small>
         </label>
+        <label class="set-field set-full">
+          <span>Premium <small>(lisans)</small></span>
+          <button type="button" id="premium-act-open" class="hub-quick-btn hidden">Premium'u etkinleştir</button>
+          <small>Lisans anahtarın varsa buradan etkinleştir.</small>
+        </label>
       </div>
       <div class="settings-foot">
         <span id="settings-status"></span>
@@ -640,6 +645,27 @@ Bana kısa ve samimi cevap ver, resmi konuşma.
         <button id="tr-gate" class="hub-quick-btn">Push Öncesi Kontrol</button>
       </div>
       <div id="tr-result" class="tr-result hidden"></div>
+    </div>
+  </div>
+
+  <!-- Premium etkinleştirme (lisans) -->
+  <div id="premium-activate-overlay" class="hidden">
+    <div class="settings-panel">
+      <div class="settings-head">
+        <h2>Harley Premium — Etkinleştir</h2>
+        <button id="premium-act-close" title="Kapat">✕</button>
+      </div>
+      <p class="settings-hint">Satın alma sırasında verilen <b>lisans anahtarını</b> gir. Anahtar yalnızca bu bilgisayarda saklanır.</p>
+      <div class="settings-grid">
+        <label class="set-field set-full">
+          <span>Lisans anahtarı</span>
+          <input id="premium-key" type="text" placeholder="HARLEY-..." spellcheck="false" autocomplete="off" />
+        </label>
+      </div>
+      <div class="settings-foot">
+        <span id="premium-act-status"></span>
+        <button id="premium-activate-btn">Etkinleştir</button>
+      </div>
     </div>
   </div>
 

@@ -11,15 +11,20 @@ if not exist "premium\index.js" (
   exit /b 1
 )
 
-echo [1/2] Premium surum derleniyor...
+echo [1/3] Premium kod obfuscate ediliyor...
+call node scripts\obfuscate-premium.js obfuscate
+
+echo [2/3] Premium surum derleniyor...
 call npx electron-builder --win >nul 2>&1
-if errorlevel 1 (
+set RC=%errorlevel%
+call node scripts\obfuscate-premium.js restore
+if not "%RC%"=="0" (
   echo Derleme HATASI. Detay: cd app ^&^& npx electron-builder --win
   pause
   exit /b 1
 )
 
-echo [2/2] Dosya adi duzenleniyor...
+echo [3/3] Dosya adi duzenleniyor...
 for %%f in ("dist\Harley-*.exe") do (
   copy /y "%%f" "dist\Harley-Premium-%%~nf.exe" >nul
 )
