@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Harley — Kişisel AI Asistanı</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="nav">
+  <div class="brand"><span class="logo">H</span> Harley</div>
+  <nav>
+    <a href="#ozellikler">Özellikler</a>
+    <a href="#fiyat">Fiyat</a>
+    <a class="btn ghost" href="/dashboard">Giriş / Kayıt</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Windows için kişisel <span class="gold">AI asistanı</span></h1>
+  <p class="sub">Full sürüm ücretsiz ve açık kaynak. <b>Harley Premium</b> ile görsel analiz, belge analizi, ekran yakalama, altın tema ve daha fazlası.</p>
+  <div class="cta">
+    <a class="btn gold" href="#fiyat">Premium'a Yükselt</a>
+    <a class="btn ghost" href="https://github.com/flewqiee/harley/releases/latest" target="_blank" rel="noreferrer">Ücretsiz İndir</a>
+  </div>
+</section>
+
+<section id="ozellikler" class="grid">
+  <div class="card"><h3>Ücretsiz (Community)</h3>
+    <ul>
+      <li>Sohbet, kod, git/GitHub</li>
+      <li>Google (takvim/e-posta/drive)</li>
+      <li>Spotify, hatırlatıcı, hafıza</li>
+      <li>TR/EN, sesli yanıt</li>
+    </ul>
+  </div>
+  <div class="card premium"><h3>Premium</h3>
+    <ul>
+      <li><b>Görsel analiz</b> (resim oku)</li>
+      <li><b>Belge analizi</b> (PDF/Word/Excel)*</li>
+      <li><b>Ekran yakalama + analiz</b>*</li>
+      <li><b>Altın tema</b> + premium deneyim</li>
+      <li>Yüksek token bütçesi + DeepSeek V4 Pro</li>
+    </ul>
+    <p class="muted">* yakında</p>
+  </div>
+</section>
+
+<section id="fiyat" class="pricing">
+  <h2>Premium</h2>
+  <div class="price-card">
+    <div class="amount" id="price">₺299</div>
+    <p class="muted">tek seferlik lisans</p>
+    <ul>
+      <li>Ömür boyu kullanım</li>
+      <li>Tüm premium özellikler</li>
+      <li>Güncellemeler</li>
+    </ul>
+    <a class="btn gold full" href="/dashboard">Satın Al</a>
+    <p class="muted small">Ödeme sonrası lisans anahtarın hesabında görünür.</p>
+  </div>
+</section>
+
+<footer class="foot">
+  <p>© 2026 Harley · <a href="https://github.com/flewqiee/harley" target="_blank" rel="noreferrer">GitHub</a></p>
+  <p class="muted small">Harley, bağımsız bir projedir. "Harley" adı Harley-Davidson ile ilişkili değildir.</p>
+</footer>
+
+<script>
+  fetch('/api/public-config').then(r=>r.json()).then(c=>{ const el=document.getElementById('price'); if(c&&c.price){ el.textContent = (c.currency==='TRY'?'₺':c.currency+' ')+c.price; } }).catch(()=>{});
+</script>
+</body>
+</html>

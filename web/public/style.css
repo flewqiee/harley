@@ -1,0 +1,66 @@
+:root {
+  --bg: #14100a;
+  --card: #201810;
+  --card2: #281f14;
+  --ink: #f7edd9;
+  --ink-soft: #e6d3ab;
+  --muted: #b79a63;
+  --gold: #e3b64e;
+  --gold-2: #c9962f;
+  --line: rgba(212,162,74,.26);
+  --line2: rgba(230,188,96,.5);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(1200px 600px at 80% -10%, rgba(201,150,47,.12), transparent 60%), var(--bg);
+  color: var(--ink); line-height: 1.6;
+}
+a { color: var(--gold); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 28px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(20,16,10,.85); backdrop-filter: blur(8px); z-index: 10; }
+.brand { font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 8px; }
+.logo { display: inline-flex; width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--gold), var(--gold-2)); color: #1a1206; align-items: center; justify-content: center; font-weight: 900; }
+.nav nav { display: flex; gap: 18px; align-items: center; }
+
+.btn { display: inline-block; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line2); background: transparent; color: var(--ink); cursor: pointer; font-size: 15px; }
+.btn:hover { text-decoration: none; border-color: var(--gold); }
+.btn.gold { background: linear-gradient(135deg, var(--gold), var(--gold-2)); color: #1a1206; border: none; font-weight: 700; }
+.btn.ghost { color: var(--ink-soft); }
+.btn.full { width: 100%; text-align: center; margin-top: 10px; }
+
+.hero { text-align: center; padding: 90px 24px 60px; }
+.hero h1 { font-size: 44px; margin: 0 0 14px; }
+.gold { color: var(--gold); }
+.sub { max-width: 640px; margin: 0 auto 28px; color: var(--ink-soft); font-size: 18px; }
+.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; max-width: 900px; margin: 40px auto; padding: 0 24px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; position: relative; overflow: hidden; }
+.card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: .8; }
+.card.premium { border-color: var(--line2); box-shadow: 0 10px 30px rgba(201,150,47,.14); }
+.card h3 { margin-top: 0; }
+.card ul { padding-left: 18px; margin: 8px 0 0; color: var(--ink-soft); }
+
+.pricing { text-align: center; padding: 30px 24px 80px; }
+.price-card { max-width: 360px; margin: 20px auto; background: var(--card); border: 1px solid var(--line2); border-radius: 18px; padding: 26px; box-shadow: 0 16px 50px rgba(201,150,47,.16); }
+.amount { font-size: 44px; font-weight: 800; color: var(--gold); }
+.price-card ul { list-style: none; padding: 0; color: var(--ink-soft); }
+.price-card ul li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.foot { border-top: 1px solid var(--line); padding: 24px; text-align: center; }
+
+/* Auth / dashboard */
+.auth-wrap { display: flex; justify-content: center; padding: 60px 20px; }
+.auth, .dash { width: min(440px, 92vw); }
+.hidden { display: none !important; }
+.tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.tab { flex: 1; padding: 8px; border-radius: 9px; border: 1px solid var(--line); background: transparent; color: var(--ink-soft); cursor: pointer; }
+.tab.active { background: var(--gold); color: #1a1206; border: none; font-weight: 700; }
+.auth input { width: 100%; padding: 11px 12px; margin: 6px 0; border-radius: 9px; border: 1px solid var(--line); background: var(--card2); color: var(--ink); font-size: 15px; }
+.auth input:focus { outline: none; border-color: var(--gold); }
+.lic { margin: 12px 0; }
+.lic textarea { width: 100%; height: 90px; background: var(--card2); color: var(--ink); border: 1px solid var(--line2); border-radius: 9px; padding: 10px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; resize: vertical; }

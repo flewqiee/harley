@@ -17,6 +17,11 @@ opencode.json
 # Premium modül — public repo'ya GİRMEZ (satılabilir özellikler)
 app/premium/
 
+# Web mağaza sırları
+web/.env
+web/data.sqlite
+web/secrets/
+
 # Kullanıcı verileri ve gizli anahtarlar (ev klasöründe tutulur, repoda değil)
 HarleyDosyalar/
 deepseek-config.json

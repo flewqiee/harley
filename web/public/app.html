@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Harley — Hesabım</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="nav">
+  <div class="brand"><span class="logo">H</span> Harley</div>
+  <nav>
+    <a href="/">Anasayfa</a>
+    <a href="#" id="logout" class="hidden">Çıkış</a>
+  </nav>
+</header>
+
+<main class="auth-wrap">
+  <!-- Giriş / Kayıt -->
+  <div id="auth-box" class="card auth hidden">
+    <div class="tabs">
+      <button id="tab-login" class="tab active">Giriş</button>
+      <button id="tab-register" class="tab">Kayıt Ol</button>
+    </div>
+    <input id="email" type="email" placeholder="E-posta" autocomplete="email" />
+    <input id="password" type="password" placeholder="Şifre (en az 8 karakter)" autocomplete="current-password" />
+    <button id="submit" class="btn gold full">Giriş</button>
+    <p id="auth-status" class="muted"></p>
+  </div>
+
+  <!-- Hesabım / Lisans -->
+  <div id="dash-box" class="card dash hidden">
+    <h2>Hesabım</h2>
+    <p class="muted">Hoş geldin, <b id="dash-email"></b></p>
+
+    <div id="license-area"></div>
+
+    <button id="buy" class="btn gold full">Premium Satın Al</button>
+    <p id="buy-status" class="muted"></p>
+    <p class="muted small">Ödeme sonrası lisans anahtarın burada görünür. Anahtarı Harley → Ayarlar → Premium'u etkinleştir ekranına yapıştır.</p>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let mode = 'login';
+
+function showAuth() { $('auth-box').classList.remove('hidden'); $('dash-box').classList.add('hidden'); $('logout').classList.add('hidden'); }
+function showDash() { $('auth-box').classList.add('hidden'); $('dash-box').classList.remove('hidden'); $('logout').classList.remove('hidden'); }
+
+$('tab-login').onclick = () => { mode='login'; $('tab-login').classList.add('active'); $('tab-register').classList.remove('active'); $('submit').textContent='Giriş'; };
+$('tab-register').onclick = () => { mode='register'; $('tab-register').classList.add('active'); $('tab-login').classList.remove('active'); $('submit').textContent='Kayıt Ol'; };
+
+async function api(url, body) {
+  const r = await fetch(url, { method: body?'POST':'GET', headers: body?{'Content-Type':'application/json'}:{}, body: body?JSON.stringify(body):undefined });
+  return r.json().catch(()=>({ok:false,message:'Yanıt okunamadı'}));
+}
+
+$('submit').onclick = async () => {
+  const email=$('email').value.trim(), password=$('password').value;
+  $('auth-status').textContent='...';
+  const r = await api(mode==='register'?'/api/register':'/api/login', { email, password });
+  if (r.ok) { loadMe(); } else { $('auth-status').textContent = r.message || 'Hata'; }
+};
+
+$('logout').onclick = async () => { await api('/api/logout', {}); showAuth(); };
+
+function renderLicense(me) {
+  const area = $('license-area');
+  if (me.license) {
+    area.innerHTML = '<div class="lic"><div class="muted">Lisans anahtarın</div><textarea readonly id="lic-key">'+me.license+'</textarea>'+
+      '<button class="btn ghost full" id="copy-lic">Kopyala</button></div>';
+    $('copy-lic').onclick = () => { const t=$('lic-key'); t.select(); document.execCommand('copy'); $('copy-lic').textContent='Kopyalandı ✓'; };
+    $('buy').classList.add('hidden');
+  } else {
+    area.innerHTML = '<p class="muted">Henüz premium yok.</p>';
+    $('buy').classList.remove('hidden');
+  }
+}
+
+async function loadMe() {
+  const me = await api('/api/me');
+  if (!me.ok) { showAuth(); return; }
+  showDash();
+  $('dash-email').textContent = me.email;
+  renderLicense(me);
+}
+
+$('buy').onclick = async () => {
+  $('buy-status').textContent='Sipariş oluşturuluyor…';
+  const r = await api('/api/checkout', {});
+  if (r.ok) {
+    if (r.provider === 'manual') $('buy-status').textContent = 'Sipariş #'+r.orderId+' oluşturuldu. (Ödeme sağlayıcı entegre olunca burada ödeme sayfası açılacak.)';
+    else location.href = r.payUrl;
+  } else $('buy-status').textContent = r.message || 'Hata';
+};
+
+loadMe();
+</script>
+</body>
+</html>
