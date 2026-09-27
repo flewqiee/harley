@@ -294,13 +294,18 @@ function openSpotifyUri(uri) {
 
 // Şarkı açıldıktan sonra hâlâ duraklıysa medya oynatma tuşu gönder (başlasın).
 function ensurePlaying(delayMs) {
-  setTimeout(async () => {
+  let tries = 0;
+  const tick = async () => {
+    tries++;
     try {
       const spotify = require('./spotify');
       const st = await spotify.getSpotifyStatus();
-      if (!st || !st.playing) await spotify.sendMediaKey('play');
+      if (st && st.playing) return; // çalıyor — bırak
     } catch { /* yok */ }
-  }, delayMs || 3000);
+    try { await require('./spotify').sendMediaKey('play'); } catch { /* yok */ }
+    if (tries < 6) setTimeout(tick, 1700); // ~10 sn boyunca dene
+  };
+  setTimeout(tick, delayMs || 2500);
 }
 
 // Spotify penceresini öne getir (kullanıcı sekmeye gitmek zorunda kalmasın).
