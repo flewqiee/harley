@@ -3077,3 +3077,89 @@ input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 3px var(--accent-s
 
 /* Secim rengi */
 ::selection { background: var(--accent-softer); }
+
+/* ============================================================
+   Faz 5 — Glassmorphism temasi (overrides)
+   Not: GPU kapali oldugu icin blur yalnizca menu/panel yuzeylerinde;
+   kartlar/govdeler yari saydam (blursuz) tutuldu (performans).
+   ============================================================ */
+:root {
+  --glass: rgba(255,253,248,0.60);
+  --glass-2: rgba(255,253,248,0.42);
+  --glass-brd: rgba(255,255,255,0.55);
+  --glass-shadow: 0 10px 34px rgba(67,53,42,0.14), 0 2px 8px rgba(67,53,42,0.08);
+  --mesh-1: rgba(180,95,45,0.16);
+  --mesh-2: rgba(201,150,47,0.14);
+  --mesh-3: rgba(150,90,60,0.10);
+}
+[data-theme="dark"] {
+  --glass: rgba(39,33,26,0.58);
+  --glass-2: rgba(39,33,26,0.42);
+  --glass-brd: rgba(255,255,255,0.09);
+  --glass-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.35);
+  --mesh-1: rgba(217,130,43,0.16);
+  --mesh-2: rgba(240,169,91,0.12);
+  --mesh-3: rgba(120,80,50,0.14);
+}
+[data-theme="premium"] {
+  --glass: rgba(32,24,16,0.52);
+  --glass-2: rgba(32,24,16,0.40);
+  --glass-brd: rgba(230,188,96,0.22);
+  --glass-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(230,188,96,0.08);
+  --mesh-1: rgba(227,182,78,0.18);
+  --mesh-2: rgba(201,150,47,0.14);
+  --mesh-3: rgba(160,110,40,0.12);
+}
+
+body {
+  background:
+    radial-gradient(700px 500px at 8% -6%, var(--mesh-1), transparent 60%),
+    radial-gradient(820px 560px at 96% 0%, var(--mesh-2), transparent 62%),
+    radial-gradient(920px 720px at 75% 110%, var(--mesh-3), transparent 60%),
+    var(--canvas) !important;
+}
+
+header, #sidebar, footer {
+  background: var(--glass) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border-color: var(--glass-brd) !important;
+}
+
+/* Paneller (acilip kapanan modaller) — cam */
+.settings-panel, .memory-panel, .clipboard-panel, .focus-panel, .evolution-panel {
+  background: var(--glass) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--glass-brd) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+/* Kartlar — yari saydam, blursuz (performans) */
+.hub-card {
+  background: var(--glass) !important;
+  border: 1px solid var(--glass-brd) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+.hub-card:hover { box-shadow: 0 16px 44px rgba(67,53,42,0.18), 0 2px 8px rgba(67,53,42,0.10) !important; }
+[data-theme="dark"] .hub-card:hover, [data-theme="premium"] .hub-card:hover { box-shadow: 0 16px 44px rgba(0,0,0,0.55) !important; }
+
+.conn-card { background: var(--glass) !important; border: 1px solid var(--glass-brd) !important; }
+
+/* Asistan balonu — camimsi */
+.msg.assistant {
+  background: var(--glass) !important;
+  border: 1px solid var(--glass-brd) !important;
+}
+.msg.user { box-shadow: 0 8px 24px rgba(180,95,45,0.30) !important; }
+
+/* Girdiler */
+input, textarea, select {
+  background: var(--glass-2) !important;
+  border: 1px solid var(--glass-brd) !important;
+}
+input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 3px var(--accent-softer) !important; }
+
+/* Gezinme & hizli butonlar */
+.nav-btn { background: transparent; border: 1px solid transparent; }
+.nav-btn:hover { background: var(--glass-2); border-color: var(--glass-brd); }
