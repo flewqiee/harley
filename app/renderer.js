@@ -72,20 +72,34 @@ function showPremiumActivation() {
     else if (statusEl) statusEl.textContent = (r && r.message) || 'Geçersiz lisans.';
   };
 }
+function wireUpgrade() {
+  const up = $('premium-upgrade');
+  if (!up) return;
+  if (!up._wired) {
+    up._wired = true;
+    up.addEventListener('click', () => { try { window.assistant.updates.open('https://harleyai.store/dashboard'); } catch { /* yok */ } });
+  }
+  up.classList.remove('hidden');
+}
 async function applyPremium() {
   if (!window.assistant.premium || !window.assistant.premium.status) return;
   let st; try { st = await window.assistant.premium.status(); } catch { return; }
   if (!st || !st.available) {
-    // NORMAL sürüm: dosya ekleme tamamen gizli (görsel de metin de yok).
+    // NORMAL/community sürüm: dosya ekleme gizli; premium yükseltme butonu görünür.
     const a = $('attach-btn'); if (a) a.style.display = 'none';
+    wireUpgrade();
     return;
   }
   if (!st.active) {
-    // Premium modül var ama lisans yok → ücretsiz davran; Ayarlar'da "etkinleştir" butonu göster.
+    // Premium modül var ama lisans yok → ücretsiz davran; "yükselt" + "etkinleştir" butonları.
     const a = $('attach-btn'); if (a) a.style.display = 'none';
+    wireUpgrade();
     const po = $('premium-act-open'); if (po) { po.classList.remove('hidden'); po.onclick = showPremiumActivation; }
     return;
   }
+  // Aktif premium: yükseltme/etkinleştirme butonlarını gizle
+  const up = $('premium-upgrade'); if (up) up.classList.add('hidden');
+  const po2 = $('premium-act-open'); if (po2) po2.classList.add('hidden');
   premiumFeatures = st.features || {};
   try { document.title = st.name; } catch { /* yok */ }
   // Marka: sidebar'da "Harley" + altında premium etiketi
