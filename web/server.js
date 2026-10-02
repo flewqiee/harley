@@ -8,6 +8,8 @@ const path = require('path');
 const crypto = require('crypto');
 const db = require('./db');
 const { issueLicense } = require('./license');
+const payments = require('./payments');
+const mailer = require('./mailer');
 
 const PORT = process.env.PORT || 8080;
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
@@ -88,9 +90,52 @@ app.post('/api/checkout', requireAuth, rateLimit(20, 60000), async (req, res) =>
   try {
     const u = await db.userById(req.session.userId);
     const orderId = await db.insOrder(u.id, PRICE, CURRENCY);
-    const payUrl = (process.env.PAYMENT_URL || '') ? (process.env.PAYMENT_URL + '?order=' + orderId) : APP_URL + '/dashboard?order=' + orderId;
-    res.json({ ok: true, orderId, payUrl, provider: process.env.PAYMENT_PROVIDER || 'manual' });
+
+    if (payments.configured()) {
+      const b = req.body || {};
+      const buyer = {
+        id: u.id, email: u.email,
+        name: String(b.name || '').trim() || 'Harley',
+        surname: String(b.surname || '').trim() || 'Musteri',
+        gsm: String(b.gsm || '').trim() || '+905000000000',
+        identityNumber: String(b.identityNumber || '').trim() || '11111111111',
+        city: String(b.city || '').trim() || 'Istanbul',
+        address: String(b.address || '').trim() || 'Belirtilmedi',
+        ip: (req.headers['x-forwarded-for'] || req.ip || '').toString().split(',')[0].trim(),
+      };
+      const result = await payments.initCheckoutForm({
+        orderId, price: PRICE, currency: CURRENCY, buyer,
+        callbackUrl: APP_URL + '/api/iyzico/callback',
+      });
+      if (result && result.status === 'success') {
+        await db.setOrderRef(orderId, result.token);
+        return res.json({ ok: true, orderId, provider: 'iyzico', token: result.token, checkoutFormContent: result.checkoutFormContent || null, paymentPageUrl: result.paymentPageUrl || null });
+      }
+      return res.status(502).json({ ok: false, message: 'Ödeme başlatılamadı: ' + ((result && result.errorMessage) || 'bilinmeyen') });
+    }
+
+    // Manuel (iyzico yapılandırılmadıysa)
+    const payUrl = APP_URL + '/dashboard?order=' + orderId;
+    res.json({ ok: true, orderId, payUrl, provider: 'manual' });
   } catch (e) { res.status(500).json({ ok: false, message: e.message }); }
+});
+
+// iyzico ödeme dönüşü (callback): imzalı olarak bize token gönderir; sonucu API'den çekeriz.
+app.post('/api/iyzico/callback', async (req, res) => {
+  try {
+    const token = req.body && req.body.token;
+    if (!token) return res.status(400).send('token yok');
+    const result = await payments.retrieve(token);
+    if (result && result.paymentStatus === 'SUCCESS') {
+      const order = await db.orderByRef(token);
+      if (order && order.status !== 'paid') {
+        await db.markPaid(order.id);
+        await grantLicense(order.user_id);
+      }
+      return res.redirect(302, '/dashboard?paid=1');
+    }
+    return res.redirect(302, '/dashboard?paid=0');
+  } catch (e) { return res.status(500).send('hata: ' + e.message); }
 });
 
 async function grantLicense(userId) {
@@ -103,6 +148,7 @@ async function grantLicense(userId) {
   catch (e) { console.error('Lisans üretilemedi:', e.message); return null; }
   const exp = LICENSE_DAYS > 0 ? Date.now() + LICENSE_DAYS * 86400000 : null;
   await db.insLic(userId, key, u.email, exp);
+  mailer.sendLicenseEmail(u.email, key).catch(() => {});
   return db.licByUser(userId);
 }
 

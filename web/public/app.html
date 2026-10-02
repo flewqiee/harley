@@ -32,19 +32,31 @@
   <div id="dash-box" class="card dash hidden">
     <h2>Hesabım</h2>
     <p class="muted">Hoş geldin, <b id="dash-email"></b></p>
-
     <div id="license-area"></div>
 
-    <button id="buy" class="btn gold full">Premium Satın Al</button>
-    <p id="buy-status" class="muted"></p>
-    <p class="muted small">Ödeme sonrası lisans anahtarın burada görünür. Anahtarı Harley → Ayarlar → Premium'u etkinleştir ekranına yapıştır.</p>
+    <div id="buy-section">
+      <h3 style="margin-bottom:6px">Premium Satın Al</h3>
+      <p class="muted small">Ödeme bilgileri (fatura için).</p>
+      <div class="buyer-grid">
+        <input id="b-name" placeholder="Ad" />
+        <input id="b-surname" placeholder="Soyad" />
+        <input id="b-gsm" placeholder="Telefon (+90...)" />
+        <input id="b-id" placeholder="TC Kimlik No" inputmode="numeric" />
+        <input id="b-city" placeholder="Şehir" />
+        <input id="b-address" placeholder="Adres" />
+      </div>
+      <button id="buy" class="btn gold full">Ödemeye Geç</button>
+      <p id="buy-status" class="muted"></p>
+    </div>
+
+    <div id="pay-area"></div>
+    <p class="muted small">Ödeme sonrası lisans anahtarın hesabında ve e-postanda olur. Harley → Ayarlar → Premium → "Lisansı etkinleştir".</p>
   </div>
 </main>
 
 <script>
 const $ = (id) => document.getElementById(id);
 let mode = 'login';
-
 function showAuth() { $('auth-box').classList.remove('hidden'); $('dash-box').classList.add('hidden'); $('logout').classList.add('hidden'); }
 function showDash() { $('auth-box').classList.add('hidden'); $('dash-box').classList.remove('hidden'); $('logout').classList.remove('hidden'); }
 
@@ -55,14 +67,12 @@ async function api(url, body) {
   const r = await fetch(url, { method: body?'POST':'GET', headers: body?{'Content-Type':'application/json'}:{}, body: body?JSON.stringify(body):undefined });
   return r.json().catch(()=>({ok:false,message:'Yanıt okunamadı'}));
 }
-
 $('submit').onclick = async () => {
   const email=$('email').value.trim(), password=$('password').value;
   $('auth-status').textContent='...';
   const r = await api(mode==='register'?'/api/register':'/api/login', { email, password });
-  if (r.ok) { loadMe(); } else { $('auth-status').textContent = r.message || 'Hata'; }
+  if (r.ok) loadMe(); else $('auth-status').textContent = r.message || 'Hata';
 };
-
 $('logout').onclick = async () => { await api('/api/logout', {}); showAuth(); };
 
 function renderLicense(me) {
@@ -71,13 +81,12 @@ function renderLicense(me) {
     area.innerHTML = '<div class="lic"><div class="muted">Lisans anahtarın</div><textarea readonly id="lic-key">'+me.license+'</textarea>'+
       '<button class="btn ghost full" id="copy-lic">Kopyala</button></div>';
     $('copy-lic').onclick = () => { const t=$('lic-key'); t.select(); document.execCommand('copy'); $('copy-lic').textContent='Kopyalandı ✓'; };
-    $('buy').classList.add('hidden');
+    $('buy-section').classList.add('hidden');
   } else {
     area.innerHTML = '<p class="muted">Henüz premium yok.</p>';
-    $('buy').classList.remove('hidden');
+    $('buy-section').classList.remove('hidden');
   }
 }
-
 async function loadMe() {
   const me = await api('/api/me');
   if (!me.ok) { showAuth(); return; }
@@ -85,16 +94,27 @@ async function loadMe() {
   $('dash-email').textContent = me.email;
   renderLicense(me);
 }
-
 $('buy').onclick = async () => {
-  $('buy-status').textContent='Sipariş oluşturuluyor…';
-  const r = await api('/api/checkout', {});
-  if (r.ok) {
-    if (r.provider === 'manual') $('buy-status').textContent = 'Sipariş #'+r.orderId+' oluşturuldu. (Ödeme sağlayıcı entegre olunca burada ödeme sayfası açılacak.)';
-    else location.href = r.payUrl;
-  } else $('buy-status').textContent = r.message || 'Hata';
+  const buyer = { name:$('b-name').value.trim(), surname:$('b-surname').value.trim(), gsm:$('b-gsm').value.trim(), identityNumber:$('b-id').value.trim(), city:$('b-city').value.trim(), address:$('b-address').value.trim() };
+  $('buy-status').textContent='Ödeme başlatılıyor…';
+  const r = await api('/api/checkout', buyer);
+  if (!r.ok) { $('buy-status').textContent = r.message || 'Hata'; return; }
+  if (r.provider === 'iyzico') {
+    $('buy-status').textContent='Ödeme formu hazır.';
+    const area = $('pay-area'); area.innerHTML='';
+    if (r.paymentPageUrl) { location.href = r.paymentPageUrl; return; }
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText='width:100%;height:640px;border:0;margin-top:8px;border-radius:12px;background:#fff';
+    area.appendChild(iframe);
+    const d = iframe.contentWindow.document; d.open(); d.write(r.checkoutFormContent || ''); d.close();
+  } else {
+    $('buy-status').textContent = 'Sipariş #'+r.orderId+' oluşturuldu. (Ödeme sağlayıcı yapılandırılınca otomatik lisans verilecek.)';
+  }
 };
 
+const q = new URLSearchParams(location.search);
+if (q.get('paid') === '1') setTimeout(()=>{ alert('Ödeme başarılı! Lisansın hesabına eklendi.'); }, 500);
+if (q.get('paid') === '0') setTimeout(()=>{ alert('Ödeme tamamlanamadı. Tekrar dene.'); }, 500);
 loadMe();
 </script>
 </body>

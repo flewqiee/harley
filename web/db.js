@@ -57,6 +57,14 @@ async function orderById(id) {
   if (usePg) { const r = await pg.query('SELECT * FROM orders WHERE id = $1', [id]); return r.rows[0]; }
   return sqlite.prepare('SELECT * FROM orders WHERE id = ?').get(id);
 }
+async function setOrderRef(id, ref) {
+  if (usePg) { await pg.query('UPDATE orders SET provider_ref=$1 WHERE id=$2', [ref, id]); return; }
+  sqlite.prepare('UPDATE orders SET provider_ref=? WHERE id=?').run(ref, id);
+}
+async function orderByRef(ref) {
+  if (usePg) { const r = await pg.query('SELECT * FROM orders WHERE provider_ref=$1 ORDER BY id DESC LIMIT 1', [ref]); return r.rows[0]; }
+  return sqlite.prepare('SELECT * FROM orders WHERE provider_ref = ? ORDER BY id DESC LIMIT 1').get(ref);
+}
 async function markPaid(id) {
   if (usePg) { await pg.query("UPDATE orders SET status='paid', paid_at=$1 WHERE id=$2", [Date.now(), id]); return; }
   sqlite.prepare("UPDATE orders SET status='paid', paid_at=? WHERE id=?").run(Date.now(), id);
@@ -71,4 +79,4 @@ async function insLic(userId, key, email, exp) {
   sqlite.prepare('INSERT INTO licenses (user_id, key, email, issued_at, exp) VALUES (?,?,?,?,?)').run(userId, key, email, now, exp);
 }
 
-module.exports = { init, userByEmail, userById, insUser, insOrder, orderById, markPaid, licByUser, insLic, usingPg: usePg };
+module.exports = { init, userByEmail, userById, insUser, insOrder, orderById, setOrderRef, orderByRef, markPaid, licByUser, insLic, usingPg: usePg };
