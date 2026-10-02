@@ -53,3 +53,26 @@ Aç: http://localhost:8080
 
 ## Not (marka)
 "Harley" adı Harley-Davidson ile ilişkilendirilmemiştir; ticari kullanımda marka riskini değerlendir. Uzun vadede özgün bir marka adı önerilir.
+
+## Hizli dagitim secenekleri
+
+### Fly.io (onerilen ucretsiz/solid; kalici disk + SQLite)
+`ash
+# flyctl kurulu olmali
+fly launch --no-deploy        # fly.toml hazir
+fly volumes create harley_data --size 1
+fly secrets set SESSION_SECRET=... ADMIN_TOKEN=... PRICE=299 CURRENCY=TRY
+fly secrets set HARLEY_LICENSE_PRIVATE_KEY=""
+fly deploy
+fly domains add harleyai.store   # DNS'i Fly'in verdigi hedeflere yonlendir
+`
+
+### VPS (Ubuntu, en saglam)
+1. Node LTS kur, web/'i kopyala, .env + secrets/private.pem (chmod 600).
+2. systemd servisi: ExecStart=/usr/bin/node /opt/harley-web/server.js.
+3. Caddy ile HTTPS (harleyai.store) -> everse_proxy localhost:8080.
+4. ufw + fail2ban + SSH anahtar + otomatik guncelleme.
+
+### Render/Railway
+- Node web servisi olarak calisir; ancak **SQLite kalici disk** ucretsiz planda yoktur.
+  Ya ucretli disk ekle ya da **Neon/Supabase (Postgres)** kullan (kod tarafinda pg'ye gecis gerekir).
