@@ -1,5 +1,5 @@
 # Fly.io dağıtımı — kalıcı disk (SQLite) ile. Kurulum: fly launch / fly deploy
-app = "harleyai"
+app = "harleyai-store"
 primary_region = "fra"
 
 [build]

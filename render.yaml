@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: harley-web
+    runtime: node
+    rootDir: web
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PRICE
+        value: "299"
+      - key: CURRENCY
+        value: TRY
+      - key: SESSION_SECRET
+        generateValue: true
+      # Aşağıdakileri Render panelinden elle gir:
+      - key: DATABASE_URL      # Neon Postgres bağlantı dizesi
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: HARLEY_LICENSE_PRIVATE_KEY
+        sync: false
