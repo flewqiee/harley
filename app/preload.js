@@ -134,7 +134,12 @@ contextBridge.exposeInMainWorld('assistant', {
     version: () => ipcRenderer.invoke('app:version'),
     check: () => ipcRenderer.invoke('app:checkUpdates'),
     open: (url) => ipcRenderer.invoke('app:openExternal', url),
+    download: () => ipcRenderer.invoke('update:download'),
+    install: () => ipcRenderer.invoke('update:install'),
     onAvailable: (cb) => ipcRenderer.on('update:available', (_e, u) => cb(u)),
+    onForced: (cb) => ipcRenderer.on('update:forced', (_e, u) => cb(u)),
+    onProgress: (cb) => ipcRenderer.on('update:progress', (_e, p) => cb(p)),
+    onDownloaded: (cb) => ipcRenderer.on('update:downloaded', (_e, u) => cb(u)),
   },
   code: {
     writeFile: (path, content) => ipcRenderer.invoke('code:writeFile', { path, content }),

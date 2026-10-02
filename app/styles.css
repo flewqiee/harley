@@ -3020,3 +3020,18 @@ html[data-theme="premium"] body { background: radial-gradient(1200px 600px at 80
 /* Eksik degisken takma adlari (bazi bilesenler --bg/--text kullaniyordu) */
 :root { --bg: var(--canvas); --bg-2: var(--canvas-2); --text: var(--ink); }
 
+
+/* Premium yukselt butonlari (goz onunde) */
+.upgrade-btn { background: linear-gradient(135deg,#e3b64e,#c9962f); color:#1a1206; border:none; border-radius:9px; padding:6px 12px; font-weight:700; font-size:12.5px; cursor:pointer; font-family: inherit; }
+.upgrade-btn:hover { filter: brightness(1.08); }
+.hub-hero-btn.upgrade { background: linear-gradient(135deg,#e3b64e,#c9962f); color:#1a1206; border:none; font-weight:700; }
+.hub-hero-btn.upgrade:hover { filter: brightness(1.08); }
+
+
+/* Zorunlu guncelleme ekrani (kapatilamaz) */
+#update-forced { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,.82); display: flex; align-items: center; justify-content: center; }
+#update-forced.hidden { display: none; }
+.uf-box { background: var(--card); border: 1px solid var(--line-2); border-radius: 16px; padding: 26px; width: min(420px, 92vw); text-align: center; box-shadow: var(--shadow-lg); }
+.uf-box h2 { margin: 0 0 8px; }
+.uf-box p { margin: 0 0 16px; }
+

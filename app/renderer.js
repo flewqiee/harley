@@ -73,13 +73,19 @@ function showPremiumActivation() {
   };
 }
 function wireUpgrade() {
-  const up = $('premium-upgrade');
-  if (!up) return;
-  if (!up._wired) {
-    up._wired = true;
-    up.addEventListener('click', () => { try { window.assistant.updates.open('https://harleyai.store/dashboard'); } catch { /* yok */ } });
-  }
-  up.classList.remove('hidden');
+  const url = 'https://harleyai.store/dashboard';
+  ['premium-upgrade', 'upgrade-btn', 'hub-upgrade'].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    if (!el._wired) {
+      el._wired = true;
+      el.addEventListener('click', () => { try { window.assistant.updates.open(url); } catch { /* yok */ } });
+    }
+    el.classList.remove('hidden');
+  });
+}
+function hideUpgrade() {
+  ['premium-upgrade', 'upgrade-btn', 'hub-upgrade'].forEach((id) => { const el = $(id); if (el) el.classList.add('hidden'); });
 }
 async function applyPremium() {
   if (!window.assistant.premium || !window.assistant.premium.status) return;
@@ -98,7 +104,7 @@ async function applyPremium() {
     return;
   }
   // Aktif premium: yükseltme/etkinleştirme butonlarını gizle
-  const up = $('premium-upgrade'); if (up) up.classList.add('hidden');
+  hideUpgrade();
   const po2 = $('premium-act-open'); if (po2) po2.classList.add('hidden');
   premiumFeatures = st.features || {};
   try { document.title = st.name; } catch { /* yok */ }
@@ -3289,20 +3295,46 @@ async function openProjectSearch(name, dir) {
   (function wireUpdates() {
     const banner = $('update-banner');
     if (!banner || !window.assistant.updates) return;
+    const U = window.assistant.updates;
     let current = null;
+    const setText = (s) => { const txt = $('update-text'); if (txt) txt.textContent = s; };
+    const setBtn = (s) => { const b = $('update-open'); if (b) b.textContent = s; };
     const show = (u) => {
       if (!u || !u.version) return;
-      current = u;
-      const txt = $('update-text');
-      if (txt) txt.textContent = t('Yeni sürüm v{v} hazır', { v: u.version });
+      current = Object.assign({}, current, u);
+      setText('Yeni sürüm v' + u.version + ' hazır');
+      setBtn('Güncelle');
       banner.classList.remove('hidden');
     };
-    if (window.assistant.updates.onAvailable) window.assistant.updates.onAvailable(show);
+    if (U.onAvailable) U.onAvailable(show);
+    if (U.onProgress) U.onProgress((p) => setText('İndiriliyor… %' + ((p && p.percent) || 0)));
+    if (U.onDownloaded) U.onDownloaded((u) => {
+      current = Object.assign({}, current, u, { _ready: true });
+      setText('Güncelleme hazır — yeniden başlat');
+      setBtn('Yeniden Başlat');
+      banner.classList.remove('hidden');
+    });
     const close = $('update-close');
     if (close) close.onclick = () => banner.classList.add('hidden');
     const open = $('update-open');
-    if (open) open.onclick = () => { if (current && current.url) window.assistant.updates.open(current.url); };
-    window.assistant.updates.check().then((u) => { if (u && u.version && !u.upToDate) show(u); }).catch(() => {});
+    if (open) open.onclick = async () => {
+      if (current && current._ready) { U.install(); return; }
+      let r; try { r = await U.download(); } catch { r = { ok: false }; }
+      if (!r || !r.ok) { if (current && current.url) U.open(current.url); }
+    };
+    // Zorunlu güncelleme — kapatılamaz ekran
+    if (U.onForced) U.onForced((u) => {
+      const ov = $('update-forced');
+      const txt = $('forced-text');
+      const btn = $('forced-btn');
+      if (txt) txt.textContent = 'Bu sürüm artık desteklenmiyor. Devam etmek için güncellemelisin (v' + (u.latest || u.min) + ').';
+      if (btn) btn.onclick = async () => {
+        let r; try { r = await U.download(); } catch { r = { ok: false }; }
+        if (!r || !r.ok) { if (u.url) U.open(u.url); }
+      };
+      if (ov) ov.classList.remove('hidden');
+    });
+    U.check().catch(() => {});
   })();
 
   // Panel açılınca body.overlay-open — kedi animasyonları duraklar (GPU yükü düşer, panel akıcı açar)

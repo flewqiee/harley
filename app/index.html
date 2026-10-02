@@ -39,8 +39,15 @@
     </div>
     <div id="update-banner" class="update-banner hidden">
       <span id="update-text">Yeni sürüm mevcut</span>
-      <button id="update-open">İndir</button>
+      <button id="update-open">Güncelle</button>
       <button id="update-close" title="Kapat">✕</button>
+    </div>
+    <div id="update-forced" class="hidden">
+      <div class="uf-box">
+        <h2>Güncelleme gerekli</h2>
+        <p id="forced-text" class="muted"></p>
+        <button id="forced-btn" class="sw-btn primary">Güncelle ve Yeniden Başlat</button>
+      </div>
     </div>
     <aside id="sidebar">
       <div class="side-head">
@@ -108,6 +115,7 @@
               <button id="sp-next" class="sp-btn" title="Sonraki"></button>
             </div>
           </div>
+          <button id="upgrade-btn" class="upgrade-btn hidden" title="Harley Premium'a yükselt">Premium</button>
           <button id="theme-btn" title="Koyu moda geç"></button>
           <button id="settings-btn" title="Kişisel ayarlar"></button>
           <button id="shutdown-btn" title="Harley ve bağlı programları kapat"></button>
@@ -135,6 +143,7 @@
               <p>Ne yapmak istersin? Bugün Harley seninle.</p>
               <div class="hub-hero-actions">
                 <button class="hub-hero-btn" id="guide-btn"><span id="guide-btn-ic"></span> Rehber</button>
+                <button class="hub-hero-btn upgrade hidden" id="hub-upgrade">Premium'a yükselt</button>
               </div>
             </div>
             <div class="hub-hero-right">

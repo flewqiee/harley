@@ -149,6 +149,48 @@ function checkForUpdates() {
   });
 }
 
+// Sunucudan sürüm/güncelleme bilgisi (zorunlu güncelleme için min sürüm).
+function checkServerVersion() {
+  const base = (CFG && CFG.versionUrl) || 'https://harleyai.store/api/version';
+  return new Promise((resolve) => {
+    const req = https.get(base, { timeout: 10000, headers: { 'User-Agent': 'Harley' } }, (res) => {
+      let d = '';
+      res.on('data', (c) => (d += c));
+      res.on('end', () => { try { resolve(JSON.parse(d)); } catch { resolve(null); } });
+    });
+    req.on('error', () => resolve(null));
+    req.setTimeout(10000, () => { req.destroy(); resolve(null); });
+  });
+}
+
+// electron-updater (yalnızca paketlenmiş NSIS kurulumunda çalışır).
+let autoUpdater = null;
+try { autoUpdater = require('electron-updater').autoUpdater; } catch { autoUpdater = null; }
+function sendToWin(ch, payload) { try { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(ch, payload); } catch { /* yok */ } }
+function setupUpdater() {
+  if (!autoUpdater || !app.isPackaged) return;
+  try {
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.on('update-available', (info) => sendToWin('update:available', { version: (info && info.version) || '' }));
+    autoUpdater.on('download-progress', (p) => sendToWin('update:progress', { percent: Math.round((p && p.percent) || 0) }));
+    autoUpdater.on('update-downloaded', (info) => sendToWin('update:downloaded', { version: (info && info.version) || '' }));
+    autoUpdater.on('error', () => { /* sessiz */ });
+  } catch { /* yok */ }
+}
+// Açılışta hem GitHub hem sunucu sürümünü kontrol et; zorunluysa renderer'a bildir.
+async function checkUpdatesStartup() {
+  const [gh, sv] = await Promise.all([checkForUpdates(), checkServerVersion()]);
+  const cur = app.getVersion();
+  if (sv && sv.min && compareVersions(sv.min, cur) > 0) {
+    sendToWin('update:forced', { min: sv.min, latest: sv.latest || sv.min, url: sv.url || 'https://github.com/flewqiee/harley/releases/latest' });
+    return;
+  }
+  const latest = (sv && sv.latest) || (gh && gh.version);
+  const url = (sv && sv.url) || (gh && gh.url) || 'https://github.com/flewqiee/harley/releases/latest';
+  if (latest && compareVersions(latest, cur) > 0) sendToWin('update:available', { version: latest, url });
+}
+
 function startHidden(command, args, extraEnv) {
   try {
     const child = spawn(command, args, {
@@ -1682,10 +1724,9 @@ app.whenReady().then(() => {
   // bağlanır. Böylece açılışta istenmeyen konsol/pencere ve indirme olmaz.
   createWindow();
   setTimeout(() => runMorningRoutine().catch(() => {}), 20000);
-  // Paketlenmiş sürümde açılıştan bir süre sonra sessizce yeni sürüm var mı diye bak.
-  if (app.isPackaged) setTimeout(async () => {
-    try { const u = await checkForUpdates(); if (u && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:available', u); } catch { /* yok */ }
-  }, 10000);
+  // Güncelleme: electron-updater'ı hazırla + açılışta sürüm kontrolü (zorunlu/opsiyonel).
+  setupUpdater();
+  setTimeout(() => { checkUpdatesStartup().catch(() => {}); }, 8000);
 
   // ---------- Personalization: oturum başlangıcı kaydı ----------
   // Uygulama açıldığında saat + proje bağlamını öğrenme sistemine kaydet.
@@ -2041,12 +2082,18 @@ ipcMain.handle('chat:models', () => {
   // ---------- Güncelleme kontrolü ----------
   ipcMain.handle('app:version', () => app.getVersion());
   ipcMain.handle('app:checkUpdates', async () => {
-    const u = await checkForUpdates();
-    if (u && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:available', u);
-    return u || { upToDate: true, version: app.getVersion() };
+    await checkUpdatesStartup().catch(() => {});
+    return { ok: true, version: app.getVersion() };
   });
   ipcMain.handle('app:openExternal', (_e, url) => {
     try { if (/^https:\/\//i.test(String(url || ''))) shell.openExternal(String(url)); return true; } catch { return false; }
+  });
+  ipcMain.handle('update:download', async () => {
+    if (!autoUpdater) return { ok: false, message: 'Bu sürümde otomatik güncelleme yok.' };
+    try { await autoUpdater.downloadUpdate(); return { ok: true }; } catch (e) { return { ok: false, message: e.message }; }
+  });
+  ipcMain.handle('update:install', () => {
+    try { if (autoUpdater) { autoUpdater.quitAndInstall(); return true; } return false; } catch { return false; }
   });
   // Arayüzü main üzerinden yeniden yükle (will-navigate engeli location.reload()'u kesiyor).
   ipcMain.handle('app:reload', () => {

@@ -49,6 +49,13 @@ function requireAuth(req, res, next) { if (!req.session.userId) return res.statu
 
 app.get('/api/public-config', (req, res) => res.json({ price: PRICE, currency: CURRENCY }));
 
+// Uygulama sürüm/güncelleme bilgisi. min: altındaki sürümler ZORUNLU güncelleme görür.
+app.get('/api/version', (req, res) => res.json({
+  latest: process.env.LATEST_VERSION || '0.13.0',
+  min: process.env.MIN_VERSION || '0.0.0',
+  url: process.env.DOWNLOAD_URL || 'https://github.com/flewqiee/harley/releases/latest',
+}));
+
 // ---- Auth ----
 app.post('/api/register', rateLimit(10, 60000), async (req, res) => {
   try {
