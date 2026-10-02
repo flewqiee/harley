@@ -3035,3 +3035,45 @@ html[data-theme="premium"] body { background: radial-gradient(1200px 600px at 80
 .uf-box h2 { margin: 0 0 8px; }
 .uf-box p { margin: 0 0 16px; }
 
+
+/* ============================================================
+   Faz 5 — Genel gorsel cila (overrides)
+   ============================================================ */
+:root { --app-radius: 14px; --app-radius-lg: 18px; }
+
+body { background: radial-gradient(1100px 620px at 100% -12%, rgba(180,95,45,.07), transparent 55%), var(--canvas); }
+[data-theme="dark"] body, [data-theme="premium"] body { background: radial-gradient(1100px 620px at 100% -12%, rgba(201,150,47,.10), transparent 55%), var(--canvas); }
+
+header { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+#sidebar { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-right: 1px solid var(--line); }
+
+/* Yumusak gecisler */
+button, .nav-btn, .hub-card, .hub-quick-btn, .bag-btn, input, textarea, select, .session-item { transition: background .16s ease, color .16s ease, border-color .16s ease, box-shadow .18s ease, transform .12s ease; }
+button:active:not(:disabled) { transform: translateY(1px); }
+
+/* Sidebar gezinme */
+.nav-btn { border-radius: 11px; }
+.nav-btn:hover { transform: translateX(2px); }
+
+/* Kartlar */
+.hub-card { border-radius: var(--app-radius-lg); box-shadow: var(--shadow-sm); }
+.hub-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* Mesaj girisi animasyonu */
+.msg { animation: msgIn .18s ease both; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* Odak halkasi */
+input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 3px var(--accent-softer); outline: none; border-color: var(--accent); }
+
+/* Girdi kutusu */
+#input { border-radius: 14px; }
+
+/* Kaydirma cubuklari */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); background-clip: padding-box; }
+
+/* Secim rengi */
+::selection { background: var(--accent-softer); }
