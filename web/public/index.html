@@ -4,20 +4,26 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Harley — Windows için kişisel AI asistanı</title>
-<meta name="description" content="Harley, bilgisayarında yaşayan kişisel AI asistanı: sohbet, kod, GitHub, Google, Spotify ve daha fazlası. Ücretsiz ve açık kaynak." />
+<meta name="description" content="Harley, bilgisayarında yaşayan kişisel AI asistanı: sohbet, kod, GitHub, Roblox Studio, Google, Spotify ve daha fazlası. Ücretsiz ve açık kaynak." />
+<link rel="icon" href="logo.png" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="topline"></div>
 
 <header class="nav">
-  <div class="brand"><span class="logo">H</span> Harley</div>
+  <a class="brand" href="/"><img class="logo" src="logo.png" alt="Harley" /><span>Harley</span></a>
   <nav>
     <a class="nav-link" href="#ozellikler">Özellikler</a>
-    <a class="nav-link" href="#nasil">Nasıl çalışır</a>
-    <a class="nav-link" href="#fiyat">Premium</a>
+    <a class="nav-link" href="#roblox">Roblox</a>
+    <a class="nav-link" href="#github">GitHub</a>
+    <a class="nav-link" href="#herkes">Kod bilmeyenler</a>
     <a class="nav-link" href="#sss">SSS</a>
-    <a class="btn ghost sm" href="/dashboard">Giriş / Kayıt</a>
+    <button class="icon-btn" id="theme-toggle" title="Gece / gündüz">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <a class="btn ghost sm" href="/dashboard">Giriş</a>
     <a class="btn gold sm" href="https://github.com/flewqiee/harley/releases/latest" target="_blank" rel="noreferrer">İndir</a>
   </nav>
 </header>
@@ -27,13 +33,13 @@
     <div>
       <span class="eyebrow">Windows · Yerel-oncelikli AI</span>
       <h1>Bilgisayarında yaşayan<br><span class="grad">kişisel AI asistanı</span></h1>
-      <p class="sub">Harley sohbet eder, kod yazar, projelerini geliştirir, GitHub'a gönderir, takvimini ve e-postanı okur, müzik çalar — hepsi doğal dille. Ücretsiz ve açık kaynak.</p>
+      <p class="sub">Harley; kod yazar, projelerini geliştirir, GitHub'a gönderir, e-postanı ve takvimini okur, müzik çalar. Kısacası: bilgisayarındaki işleri <b>konuşarak</b> hallettirir. Ücretsiz ve açık kaynak.</p>
       <div class="hero-cta">
-        <a class="btn primary" href="#ozellikler">Özellikleri gör</a>
-        <a class="btn" href="https://github.com/flewqiee/harley" target="_blank" rel="noreferrer">GitHub'da incele</a>
+        <a class="btn primary" href="#ozellikler">Neler yapabilir?</a>
+        <a class="btn" href="https://github.com/flewqiee/harley/releases/latest" target="_blank" rel="noreferrer">Ücretsiz İndir</a>
       </div>
       <div class="hero-note">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Kurulum gerektirmez (portable)</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Kurulum yerini sen seçersin</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Verilerin cihazında</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Kendi anahtarınla</span>
       </div>
@@ -51,60 +57,109 @@
     <p class="section-sub">Community sürümü tamamen ücretsiz. Premium ile sınırları kaldır.</p>
   </div>
   <div class="grid cols-2">
-    <div class="card">
-      <span class="accent-bar"></span>
+    <div class="card"><span class="accent-bar"></span>
       <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
       <h3>Ücretsiz (Community)</h3>
-      <ul>
-        <li>Sohbet + kod yazma (TR / EN)</li>
-        <li>Çalışma alanı: dosya oku/yaz, komut çalıştır, test</li>
-        <li>Git / GitHub: repo oluştur, commit, push, issue</li>
-        <li>Google: Takvim, Gmail, Drive, Görevler</li>
-        <li>Spotify, hatırlatıcı, hafıza, sesli yanıt</li>
-      </ul>
+      <ul><li>Sohbet + kod (TR / EN)</li><li>Çalışma alanı: dosya, komut, test</li><li>Git / GitHub</li><li>Google (Takvim/Gmail/Drive/Görevler)</li><li>Spotify, hatırlatıcı, hafıza, sesli yanıt</li></ul>
     </div>
-    <div class="card premium">
-      <span class="accent-bar"></span>
+    <div class="card premium"><span class="accent-bar"></span>
       <div class="feature-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5.5L20 10l-5.5 2.5L12 18l-2.5-5.5L4 10l5.5-1.5z"/></svg></div>
       <h3>Premium <span class="badge">YAKINDA</span></h3>
+      <ul><li><b>Görsel analiz</b> (resim okuma)</li><li><b>Belge analizi</b> (PDF/Word/Excel)</li><li><b>Ekran yakalama + analiz</b></li><li><b>Altın tema</b> + premium deneyim</li><li>Yüksek token bütçesi + V4 Pro</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Neler yapabilir?</span>
+      <h2 class="section-title">Şöyle söyle, Harley yapsın</h2>
+    </div>
+    <div class="chips">
+      <span class="chip">"Bu klasörde bir obby kur"</span>
+      <span class="chip">"Günün özetini çıkar"</span>
+      <span class="chip">"Şu hatayı bul ve düzelt"</span>
+      <span class="chip">"Projeyi test et, commit et, push et"</span>
+      <span class="chip">"Rüzgar'ı çal"</span>
+      <span class="chip">"Yarın 09:00'a toplantı ekle"</span>
+      <span class="chip">"Bana bir Python script yaz"</span>
+      <span class="chip">"E-postalarımı özetle"</span>
+    </div>
+  </div>
+</section>
+
+<section id="roblox" class="wrap info">
+  <div>
+    <span class="eyebrow">Roblox Studio</span>
+    <h3>Roblox geliştiricileri için</h3>
+    <p>Harley, Roblox Studio'ya bağlanır ve senin yerine kod yazıp çalıştırabilir. Bir obby, kılıç, para sistemi veya UI istemen yeterli — Harley scriptleri oluşturur, hataları bulur ve test eder. Studio'yu açık tutman yeterli.</p>
+    <ul>
+      <li>Luau kodu yazma ve çalıştırma (execute)</li>
+      <li>Script okuma / güncelleme, toplu arama-değiştirme</li>
+      <li>Obje oluşturma, özellik ayarlama, parça yerleştirme</li>
+      <li>Playtest başlatma ve hata/log okuma</li>
+    </ul>
+  </div>
+  <div class="visual">
+    <div class="code"><b>Sen:</b> "Basit bir obby yap: başlangıç + 3 checkpoint + ölüm tuzağı"
+<b>Harley:</b> klasörü kurar, parçaları oluşturur,
+tuzak script'ini yazar, test eder ve raporlar.</div>
+  </div>
+</section>
+
+<section id="github" class="band">
+  <div class="wrap info rev">
+    <div class="visual">
+      <div class="code"><b>Sen:</b> "Bu projeyi GitHub'a koy, commit et, push et"
+<b>Harley:</b> repo oluşturur, bağlar, test eder,
+commit atar, push eder — her adımda onayını ister.</div>
+    </div>
+    <div>
+      <span class="eyebrow">Git / GitHub</span>
+      <h3>Kodunu güvende tut</h3>
+      <p>Git karmaşık olabilir; Harley senin yerine yapar. "Commit et", "push et", "yeni branch aç", "main'e al" demen yeterli. Her yazma işlemi <b>önce onayını ister</b>, yani istemediğin bir şey olmaz.</p>
       <ul>
-        <li><b>Görsel analiz</b> — resim yükle, Harley görsün</li>
-        <li><b>Belge analizi</b> — PDF / Word / Excel</li>
-        <li><b>Ekran yakalama + analiz</b></li>
-        <li><b>Altın tema</b> + premium deneyim</li>
-        <li>Yüksek token bütçesi + DeepSeek V4 Pro</li>
+        <li>Repo oluşturma / mevcut repoya bağlama</li>
+        <li>Commit & push (yedekleme)</li>
+        <li>Issue'ları listeleme, CI üretimi</li>
+        <li>Değişiklikleri inceleme (diff), kod gözden geçirme</li>
       </ul>
     </div>
   </div>
 </section>
 
-<section class="wrap">
-  <div class="section-head">
-    <span class="eyebrow">Neler yapabilir?</span>
-    <h2 class="section-title">Şöyle şeyler söyle, Harley yapsın</h2>
+<section id="herkes" class="wrap info">
+  <div>
+    <span class="eyebrow">Herkes için</span>
+    <h3>Kod bilmiyor musun? Sorun değil</h3>
+    <p>Harley'i kullanmak için programlama bilmene gerek yok. Günlük dille konuşursun, o anlar ve yapar. Bilgisayarındaki sıkıcı işleri (dosya düzenleme, bilgi arama, e-posta özetleme, hatırlatma) Harley'e bırakabilirsin.</p>
+    <ul>
+      <li>Takvimine etkinlik ekler, e-postalarını özetler</li>
+      <li>Klasörlerini düzenler, dosya bulur</li>
+      <li>Sana hatırlatır, hava durumunu söyler</li>
+      <li>Şarkı açar, motivasyon/fıkra verir</li>
+      <li>Ne istediğini net anlatırsan, kod yazmayı da senin için yapar</li>
+    </ul>
   </div>
-  <div class="chips">
-    <span class="chip"><b>"</b>Bu klasörde bir Roblox obby kur<b>"</b></span>
-    <span class="chip"><b>"</b>Bugünkü e-postalarımı özetle<b>"</b></span>
-    <span class="chip"><b>"</b>Şu hatayı bul ve düzelt<b>"</b></span>
-    <span class="chip"><b>"</b>Projeyi test et, commit et, push et<b>"</b></span>
-    <span class="chip"><b>"</b>Rüzgar'ı çal<b>"</b></span>
-    <span class="chip"><b>"</b>Yarın 09:00'da toplantı ekle<b>"</b></span>
-    <span class="chip"><b>"</b>Şu ekran görüntüsünde ne var?<b>"</b></span>
-    <span class="chip"><b>"</b>Bana bir Python script yaz<b>"</b></span>
+  <div class="visual">
+    <div class="code"><b>Sen:</b> "Bu klasördeki tüm resimleri
+'Resimler' klasörüne taşı"
+<b>Harley:</b> düzenler, sonucu gösterir. Kod yazmadın.</div>
   </div>
 </section>
 
-<section id="nasil" class="wrap">
-  <div class="section-head">
-    <span class="eyebrow">Başlangıç</span>
-    <h2 class="section-title">3 adımda hazır</h2>
-    <p class="section-sub">Kur, anahtarını gir, konuşmaya başla.</p>
-  </div>
-  <div class="grid cols-3">
-    <div class="card"><div class="step"><span class="n">1</span><div><b>İndir & Kur</b><span>Kurulum yerini sen seçersin; masaüstü ve Başlat menüsü kısayolu oluşur.</span></div></div></div>
-    <div class="card"><div class="step"><span class="n">2</span><div><b>DeepSeek anahtarını gir</b><span>Sihirbaz yönlendirir. İstersen Google / GitHub / Spotify bağla.</span></div></div></div>
-    <div class="card"><div class="step"><span class="n">3</span><div><b>Kullan</b><span>Sohbet, kod, proje, otomasyon — hepsi doğal dille.</span></div></div></div>
+<section id="nasil" class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Başlangıç</span>
+      <h2 class="section-title">3 adımda hazır</h2>
+    </div>
+    <div class="grid cols-3">
+      <div class="card"><div class="step"><span class="n">1</span><div><b>İndir & Kur</b><br><span class="muted">Kurulum yerini sen seçersin; masaüstü + Başlat kısayolu oluşur.</span></div></div></div>
+      <div class="card"><div class="step"><span class="n">2</span><div><b>DeepSeek anahtarını gir</b><br><span class="muted">Sihirbaz yönlendirir. Google/GitHub/Spotify isteğe bağlı.</span></div></div></div>
+      <div class="card"><div class="step"><span class="n">3</span><div><b>Kullan</b><br><span class="muted">Sohbet, kod, proje, otomasyon — hepsi doğal dille.</span></div></div></div>
+    </div>
   </div>
 </section>
 
@@ -119,7 +174,7 @@
       <tbody>
         <tr><td>Sohbet, kod, çalışma alanı</td><td class="yes">✓</td><td class="yes">✓</td></tr>
         <tr><td>Git / GitHub, Google, Spotify</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>TR / EN, sesli yanıt</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Roblox Studio köprüsü</td><td class="yes">✓</td><td class="yes">✓</td></tr>
         <tr><td>Görsel analiz (resim okuma)</td><td class="no">—</td><td class="yes">✓</td></tr>
         <tr><td>Belge analizi (PDF / Office)</td><td class="no">—</td><td class="yes">yakında</td></tr>
         <tr><td>Ekran yakalama + analiz</td><td class="no">—</td><td class="yes">yakında</td></tr>
@@ -147,7 +202,7 @@
       <li>Yüksek token bütçesi + V4 Pro</li>
     </ul>
     <a class="btn gold full" href="https://donate.bynogame.com/flewqiee" target="_blank" rel="noreferrer">Geliştirmeyi Destek Ol</a>
-    <p class="muted small" style="margin-top:10px">Bağış tamamen isteğe bağlıdır; uygulama tüm özellikleriyle ücretsizdir.</p>
+    <p class="muted small" style="margin-top:10px">Bağış isteğe bağlıdır; uygulama tüm özellikleriyle ücretsizdir.</p>
   </div>
 </section>
 
@@ -156,12 +211,19 @@
     <span class="eyebrow">SSS</span>
     <h2 class="section-title">Sık sorulan sorular</h2>
   </div>
-  <div style="max-width:780px;margin:0 auto">
-    <details open><summary>Ücretsiz sürüm kısıtlı mı?</summary><p>Hayır. Community sürümü gerçekten ücretsizdir ve tüm temel özellikleri içerir. Premium; görsel/belge analizi ve altın deneyim gibi ekstralar ekler.</p></details>
-    <details><summary>Verilerim nerede saklanıyor?</summary><p>Anahtarlar ve veriler yalnızca senin bilgisayarında. Harley sunucularına sohbet gönderilmez; istekler seçtiğin sağlayıcıya (DeepSeek) gider.</p></details>
-    <details><summary>Hangi servisler gerekli?</summary><p>Sohbet için bir DeepSeek API anahtarı yeterlidir. Google, GitHub ve Spotify isteğe bağlıdır; bağlarsan onları da kullanır.</p></details>
+  <div style="max-width:800px;margin:0 auto">
+    <details open><summary>Harley tam olarak ne yapar?</summary><p>Bilgisayarında çalışan kişisel bir AI asistanıdır. Sohbet eder, kod yazar, projelerini geliştirir, GitHub'a gönderir, e-postanı/takvimini okur, müzik çalar, hatırlatır. Kısacası bilgisayardaki işlerini konuşarak hallettirir.</p></details>
+    <details><summary>Kod bilmem gerekiyor mu?</summary><p>Hayır. Günlük dille konuşman yeterlidir. İstersen Harley senin için kod da yazar.</p></details>
+    <details><summary>Ücretsiz sürüm kısıtlı mı?</summary><p>Hayır. Community sürümü gerçekten ücretsizdir ve temel her şeyi içerir. Premium; görsel/belge analizi ve altın deneyim gibi ekstralar ekler.</p></details>
+    <details><summary>Verilerim nerede saklanıyor? Güvenli mi?</summary><p>Anahtarların ve verilerin yalnızca senin bilgisayarında. Harley sunucusuna sohbet gönderilmez; istekler doğrudan seçtiğin sağlayıcıya (DeepSeek) gider. Anahtarlar işletim sistemi şifrelemesiyle korunur.</p></details>
+    <details><summary>Hangi servisler gerekli?</summary><p>Sohbet için bir <b>DeepSeek API anahtarı</b> yeterlidir (ücretsiz oluşturabilirsin). Google, GitHub ve Spotify isteğe bağlıdır.</p></details>
+    <details><summary>Roblox Studio ile nasıl çalışır?</summary><p>Studio'da küçük bir eklenti kurarsın. Sonra "şu özelliği ekle" dersin; Harley kodu yazar, çalıştırır, hataları bulur ve test eder.</p></details>
+    <details><summary>GitHub'a yazması güvenli mi?</summary><p>Evet. Commit/push/issue gibi yazma işlemleri <b>her zaman önce onayını ister</b>; sen onaylamadan hiçbir şey gönderilmez.</p></details>
+    <details><summary>Maliyeti var mı?</summary><p>Uygulama ücretsiz. DeepSeek kullanımı kendi anahtarına bağlıdır (çok düşük maliyetli). İstersen ücretsiz modellerde kalabilirsin.</p></details>
+    <details><summary>Windows dışında çalışır mı?</summary><p>Şu an Windows 10/11 içindir.</p></details>
     <details><summary>Katkıda bulunabilir miyim?</summary><p>Evet! Proje açık kaynak. GitHub'dan issue/PR açabilir, yıldız vererek destek olabilirsin.</p></details>
-    <details><summary>Güncellemeler nasıl gelir?</summary><p>Harley içindeki "Güncelle" butonuyla. Önemli bir sürümde otomatik güncelleme ekranı çıkar.</p></details>
+    <details><summary>Güncellemeler nasıl gelir?</summary><p>Uygulama içindeki "Güncelle" butonuyla. Önemli sürümlerde otomatik güncelleme ekranı çıkar.</p></details>
+    <details><summary>Nasıl silerim?</summary><p>Uygulamayı kaldır; verilerini Ayarlar → Verilerim → "Tüm verileri sil" ile temizle. Harley servis/kayıt defteri bırakmaz.</p></details>
   </div>
 </section>
 
@@ -172,7 +234,12 @@
 </footer>
 
 <script>
-  fetch('/api/public-config').then(r=>r.json()).catch(()=>{});
+  (function(){
+    var root=document.documentElement;
+    try{ var s=localStorage.getItem('harley-theme'); if(s) root.dataset.theme=s; }catch(e){}
+    var btn=document.getElementById('theme-toggle');
+    if(btn) btn.onclick=function(){ var t=root.dataset.theme==='dark'?'light':'dark'; root.dataset.theme=t; try{ localStorage.setItem('harley-theme',t); }catch(e){} };
+  })();
 </script>
 </body>
 </html>

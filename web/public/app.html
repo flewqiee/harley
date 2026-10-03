@@ -10,10 +10,14 @@
 <div class="topline"></div>
 
 <header class="nav">
-  <div class="brand"><span class="logo">H</span> Harley</div>
+  <a class="brand" href="/"><img class="logo" src="logo.png" alt="Harley" /><span>Harley</span></a>
   <nav>
     <a class="nav-link" href="/">Anasayfa</a>
     <a class="nav-link" href="https://github.com/flewqiee/harley/releases/latest" target="_blank" rel="noreferrer">İndir</a>
+    <button class="icon-btn" id="theme-toggle" title="Gece / gündüz">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
     <a href="#" id="logout" class="btn ghost sm hidden">Çıkış</a>
   </nav>
 </header>
@@ -46,6 +50,7 @@
 </main>
 
 <script>
+(function(){ var r=document.documentElement; try{ var s=localStorage.getItem('harley-theme'); if(s) r.dataset.theme=s; }catch(e){} var b=document.getElementById('theme-toggle'); if(b) b.onclick=function(){ var t=r.dataset.theme==='dark'?'light':'dark'; r.dataset.theme=t; try{ localStorage.setItem('harley-theme',t); }catch(e){} }; })();
 const $ = (id) => document.getElementById(id);
 let mode = 'login';
 function showAuth(){ $('auth-box').classList.remove('hidden'); $('dash-box').classList.add('hidden'); $('logout').classList.add('hidden'); }
