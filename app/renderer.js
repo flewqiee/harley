@@ -90,15 +90,20 @@ function hideUpgrade() {
 async function applyPremium() {
   if (!window.assistant.premium || !window.assistant.premium.status) return;
   let st; try { st = await window.assistant.premium.status(); } catch { return; }
+  const screenBtnEl = $('screen-btn');
   if (!st || !st.available) {
     // NORMAL/community sürüm: dosya ekleme gizli; premium yükseltme butonu görünür.
     const a = $('attach-btn'); if (a) a.style.display = 'none';
+    if (screenBtnEl) screenBtnEl.style.display = 'none';
+    premiumFeatures = {};
     wireUpgrade();
     return;
   }
   if (!st.active) {
     // Premium modül var ama lisans yok → ücretsiz davran; "yükselt" + "etkinleştir" butonları.
     const a = $('attach-btn'); if (a) a.style.display = 'none';
+    if (screenBtnEl) screenBtnEl.style.display = 'none';
+    premiumFeatures = {};
     wireUpgrade();
     const po = $('premium-act-open'); if (po) { po.classList.remove('hidden'); po.onclick = showPremiumActivation; }
     return;
@@ -107,6 +112,12 @@ async function applyPremium() {
   hideUpgrade();
   const po2 = $('premium-act-open'); if (po2) po2.classList.add('hidden');
   premiumFeatures = st.features || {};
+  // Premium: ekran yakalama + analiz butonu
+  if (screenBtnEl) {
+    setIcon(screenBtnEl, 'screen', 15);
+    screenBtnEl.style.display = premiumFeatures.screen ? '' : 'none';
+    if (!screenBtnEl._wired) { screenBtnEl._wired = true; screenBtnEl.addEventListener('click', captureScreen); }
+  }
   try { document.title = st.name; } catch { /* yok */ }
   // Marka: sidebar'da "Harley" + altında premium etiketi
   const sub = document.querySelector('.side-sub');
@@ -139,6 +150,23 @@ async function applyPremium() {
       hero.insertAdjacentHTML('beforeend', ' <span id="premium-hero-badge" class="premium-badge">PREMIUM</span>');
     }
   } catch { /* yok */ }
+}
+
+// Premium: ekranı yakala → görsel olarak sohbete ekle (vision).
+async function captureScreen() {
+  try {
+    const r = await window.assistant.screen.capture();
+    if (!r || !r.ok) { showToast((r && r.message) || 'Ekran alınamadı.'); return; }
+    // Görsel analiz yalnızca görsel destekli modelde çalışır → otomatik geç.
+    if (modelSelect && modelSelect.value !== 'deepseek-flash') {
+      const opt = Array.from(modelSelect.options).find((o) => o.value === 'deepseek-flash');
+      if (opt) { modelSelect.value = 'deepseek-flash'; modelSelect.dispatchEvent(new Event('change')); }
+    }
+    attachedFiles.push({ name: r.name || 'ekran.png', type: 'image', content: r.data, note: '', preview: r.data, path: null });
+    renderFilePreview();
+    showToast('Ekran eklendi — sorunu yazıp gönder.');
+    if (inputEl) inputEl.focus();
+  } catch (e) { showToast('Ekran alınamadı: ' + ((e && e.message) || e)); }
 }
 
 const LS_SESSIONS = 'assistant_sessions_v1';
@@ -211,6 +239,8 @@ const ICONS = {
   python: '<path d="M12 3c-4 0-6 1.5-6 3.5S8 10 12 10s6-1.5 6-3.5S16 3 12 3z"/><path d="M12 10v4c0 2-1.5 3-6 3M12 10c4 0 6 1.5 6 3.5"/><circle cx="8.5" cy="6.5" r=".8"/><circle cx="15.5" cy="17.5" r=".8"/>',
   nodejs: '<path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M12 12 3 7.5M12 12l9-4.5M12 12v9"/>',
   sync: '<path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/><path d="M12 8v4l2.5 2.5"/>',
+  screen: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/>',
 };
 function svgIcon(name, size) {
   const s = size || 17;
@@ -1116,7 +1146,11 @@ async function send(text) {
       if (f.type === 'image' && f.content && String(f.content).startsWith('data:') && visionOk) {
         images.push(f.content); // premium + Flash: görseli modele gönder
       } else if (f.type === 'text' && f.content) {
-        extra.push('📎 ' + f.name + ' dosyası eklendi:\n' + f.content.slice(0, 12000));
+        if (f.doc) {
+          extra.push('📎 ' + f.name + (f.kind ? ' [' + f.kind + ']' : '') + ' belgesi eklendi. İçeriği:\n' + f.content.slice(0, 48000));
+        } else {
+          extra.push('📎 ' + f.name + ' dosyası eklendi:\n' + f.content.slice(0, 12000));
+        }
       } else if (f.type === 'image') {
         extra.push('📎 ' + f.name + ' (görsel ek). ' + (premiumFeatures.vision ? 'Görsel analizi için üstten modeli "DeepSeek V4.1 Flash" seç.' : 'Not: Harley görselleri inceleyemiyor — resmi yazıyla anlat, ayrıca sorabilirsin.'));
       } else {
@@ -2798,6 +2832,19 @@ async function openProjectSearch(name, dir) {
       const name = file.name || 'dosya';
       const isImg = file.type && file.type.startsWith('image/');
       const size = file.size || 0;
+      // Premium belge analizi (PDF/Word/Excel): ana süreçte parse edilsin.
+      if (/\.(pdf|docx|xls|xlsm|xlsx)$/i.test(name) && premiumFeatures.documents) {
+        const p = (window.assistant.files.pathFor && window.assistant.files.pathFor(file)) || '';
+        if (p) {
+          window.assistant.files.readPath(p).then((r) => {
+            if (r && r.ok) attachedFiles.push({ name: r.name || name, type: r.type || 'text', content: r.content || '', note: r.note || '', doc: !!r.doc, kind: r.kind || '', preview: null, path: p });
+            else attachedFiles.push({ name, type: 'file', content: '', note: (r && r.note) || 'Belge okunamadı.', doc: true, preview: null, path: p });
+            renderFilePreview();
+            resolve();
+          }).catch(() => resolve());
+          return;
+        }
+      }
       if (isImg) {
         const rd = new FileReader();
         rd.onload = () => {
@@ -2853,6 +2900,8 @@ async function openProjectSearch(name, dir) {
           type: r.type || 'text',
           content: r.content || '',
           note: r.note || '',
+          doc: !!r.doc,
+          kind: r.kind || '',
           preview: preview,
           path: r.path || null,
         });
@@ -2904,6 +2953,8 @@ async function openProjectSearch(name, dir) {
           type: r.file.type || 'text',
           content: r.file.content || '',
           note: r.file.note || '',
+          doc: !!r.file.doc,
+          kind: r.file.kind || '',
           preview: preview,
           path: r.file.path || null,
         });

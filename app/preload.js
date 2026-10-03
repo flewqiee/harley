@@ -1,5 +1,5 @@
 // preload.js — the only bridge between the UI and the main process.
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('assistant', {
   i18n: {
@@ -73,6 +73,10 @@ contextBridge.exposeInMainWorld('assistant', {
     pick: () => ipcRenderer.invoke('file:pick'),
     readPath: (filePath) => ipcRenderer.invoke('file:readPath', filePath),
     fromClipboard: () => ipcRenderer.invoke('clipboard:files'),
+    pathFor: (file) => { try { return webUtils.getPathForFile(file); } catch { return ''; } },
+  },
+  screen: {
+    capture: () => ipcRenderer.invoke('screen:capture'),
   },
   workspace: {
     pick: (sessionId) => ipcRenderer.invoke('workspace:pick', sessionId),

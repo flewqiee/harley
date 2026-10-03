@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DIR = path.join(__dirname, '..', 'premium');
-const FILES = ['index.js', 'license.js'];
+const FILES = ['index.js', 'license.js', 'docparse.js'];
 const mode = process.argv[2] || 'obfuscate';
 
 function p(f) { return path.join(DIR, f); }

@@ -2841,10 +2841,24 @@ ipcMain.handle('chat:models', () => {
 
   // ---------- Dosya ekleme (seçici + pano) ----------
   const IMG_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico'];
-  function readFileForHarley(filePath) {
+  const DOC_EXTS = ['.pdf', '.docx', '.xls', '.xlsm', '.xlsx'];
+  async function readFileForHarley(filePath) {
     const ext = path.extname(filePath).toLowerCase();
     const name = path.basename(filePath);
     const size = fs.statSync(filePath).size;
+    // Premium belge analizi (PDF / Word / Excel) — sadece premium aktifken.
+    if (DOC_EXTS.includes(ext)) {
+      if (premiumActive() && PREMIUM && typeof PREMIUM.parseDocument === 'function') {
+        try {
+          const r = await PREMIUM.parseDocument(filePath);
+          if (r && r.ok) return { name, type: 'text', content: r.text, note: '', doc: true, kind: r.kind || '' };
+          return { name, type: 'file', content: null, note: (r && r.message) || 'Belge okunamadı.', doc: true };
+        } catch (e) {
+          return { name, type: 'file', content: null, note: 'Belge okunamadı: ' + e.message, doc: true };
+        }
+      }
+      return { name, type: 'file', content: null, note: 'Belge analizi (PDF/Word/Excel) **Premium** özelliğidir.', doc: true };
+    }
     if (IMG_EXTS.includes(ext)) {
       // Premium görsel analiz için resmi base64 data URL olarak ver (boyut sınırı: 8 MB).
       try {
@@ -2866,13 +2880,14 @@ ipcMain.handle('chat:models', () => {
     // Normal sürüm: yalnızca metin/kod belgeleri. Premium: ayrıca görseller (vision).
     const textExts = ['txt', 'md', 'markdown', 'json', 'js', 'mjs', 'cjs', 'ts', 'jsx', 'tsx', 'py', 'lua', 'rb', 'go', 'rs', 'java', 'c', 'cpp', 'h', 'cs', 'php', 'html', 'htm', 'css', 'scss', 'csv', 'xml', 'yml', 'yaml', 'log', 'ini', 'cfg', 'conf', 'env', 'sql', 'sh', 'bat', 'ps1'];
     const imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];
+    const docExts = ['pdf', 'docx', 'xls', 'xlsm', 'xlsx'];
     const filters = premiumActive()
-      ? [{ name: 'Belgeler ve görseller', extensions: textExts.concat(imgExts) }, { name: 'Tüm dosyalar', extensions: ['*'] }]
+      ? [{ name: 'Belgeler, görseller, PDF/Word/Excel', extensions: textExts.concat(imgExts, docExts) }, { name: 'Tüm dosyalar', extensions: ['*'] }]
       : [{ name: 'Belgeler', extensions: textExts }, { name: 'Tüm dosyalar', extensions: ['*'] }];
     const r = await dialog.showOpenDialog(win, { properties: ['openFile'], title: 'Harley\'ye dosya ekle', filters });
     if (r.canceled || !r.filePaths.length) return { canceled: true };
     try {
-      return { canceled: false, ...readFileForHarley(r.filePaths[0]) };
+      return { canceled: false, ...(await readFileForHarley(r.filePaths[0])) };
     } catch (e) {
       return { canceled: false, name: path.basename(r.filePaths[0]), type: 'file', content: null, note: 'Okunamadı: ' + e.message };
     }
@@ -2881,11 +2896,30 @@ ipcMain.handle('chat:models', () => {
     if (!filePath || typeof filePath !== 'string') return { ok: false };
     try {
       if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return { ok: false };
-      return { ok: true, ...readFileForHarley(filePath) };
+      return { ok: true, ...(await readFileForHarley(filePath)) };
     } catch (e) {
       return { ok: false, note: e.message };
     }
   });
+  // ---------- Premium: ekran yakalama + analiz ----------
+  ipcMain.handle('screen:capture', async () => {
+    if (!premiumActive() || !(PREMIUM && PREMIUM.features && PREMIUM.features.screen)) {
+      return { ok: false, message: 'Ekran analizi **Premium** özelliğidir.' };
+    }
+    try {
+      const { desktopCapturer, screen } = require('electron');
+      const primary = screen.getPrimaryDisplay();
+      const w = Math.min(2560, Math.max(1280, primary.size.width));
+      const h = Math.round(w * (primary.size.height / primary.size.width));
+      const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: w, height: h } });
+      const src = sources.find((s) => String(s.display_id) === String(primary.id)) || sources[0];
+      if (!src || !src.thumbnail || src.thumbnail.isEmpty()) return { ok: false, message: 'Ekran görüntüsü alınamadı.' };
+      return { ok: true, data: src.thumbnail.toDataURL(), name: 'ekran-' + Date.now() + '.png' };
+    } catch (e) {
+      return { ok: false, message: 'Ekran alınamadı: ' + (e && e.message || e) };
+    }
+  });
+
   // Workspace IPC (registry modül scope'ta tanımlı — wsLoad whenReady'de çağrılır).
   ipcMain.handle('workspace:pick', async (_e, sessionId) => {
     const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -2940,7 +2974,7 @@ ipcMain.handle('chat:models', () => {
   ipcMain.handle('workspace:list', (_e, sessionId, rel) => workspace.safeList(sessionId, rel));
   ipcMain.handle('workspace:read', (_e, sessionId, rel) => workspace.safeRead(sessionId, rel));
   ipcMain.handle('workspace:write', (_e, sessionId, rel, content, append) => workspace.safeWrite(sessionId, rel, content, append));
-  ipcMain.handle('clipboard:files', () => {
+  ipcMain.handle('clipboard:files', async () => {
     try {
       const fmts = clipboard.availableFormats();
       let filePath = null;
@@ -2953,7 +2987,7 @@ ipcMain.handle('chat:models', () => {
         if (m) filePath = decodeURIComponent(m[1]);
       }
       if (!filePath || !fs.existsSync(filePath)) return { file: null };
-      return { file: { path: filePath, ...readFileForHarley(filePath) } };
+      return { file: { path: filePath, ...(await readFileForHarley(filePath)) } };
     } catch {
       return { file: null };
     }

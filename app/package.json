@@ -36,6 +36,8 @@
       "locales.json",
       "premium/index.js",
       "premium/license.js",
+      "premium/docparse.js",
+      "premium/node_modules/**",
       "workspace.js",
       "rag.js",
       "google.js",
