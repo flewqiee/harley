@@ -7,46 +7,51 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
 <header class="nav">
   <div class="brand"><span class="logo">H</span> Harley</div>
   <nav>
     <a href="/">Anasayfa</a>
+    <a href="https://github.com/flewqiee/harley/releases/latest" target="_blank" rel="noreferrer">İndir</a>
     <a href="#" id="logout" class="hidden">Çıkış</a>
   </nav>
 </header>
 
 <main class="auth-wrap">
   <!-- Giriş / Kayıt -->
-  <div id="auth-box" class="card auth hidden">
+  <div id="auth-box" class="panel hidden">
+    <h2>Hesabına gir</h2>
+    <p class="muted small">Lisansını yönet ve premium'a yükselt.</p>
     <div class="tabs">
       <button id="tab-login" class="tab active">Giriş</button>
       <button id="tab-register" class="tab">Kayıt Ol</button>
     </div>
-    <input id="email" type="email" placeholder="E-posta" autocomplete="email" />
-    <input id="password" type="password" placeholder="Şifre (en az 8 karakter)" autocomplete="current-password" />
-    <button id="submit" class="btn gold full">Giriş</button>
-    <p id="auth-status" class="muted"></p>
+    <input id="email" class="field" type="email" placeholder="E-posta" autocomplete="email" />
+    <input id="password" class="field" type="password" placeholder="Şifre (en az 8 karakter)" autocomplete="current-password" />
+    <button id="submit" class="btn gold full" style="margin-top:8px">Giriş</button>
+    <p id="auth-status" class="muted small"></p>
   </div>
 
-  <!-- Hesabım / Lisans -->
-  <div id="dash-box" class="card dash hidden">
+  <!-- Hesabım -->
+  <div id="dash-box" class="panel hidden">
     <h2>Hesabım</h2>
     <p class="muted">Hoş geldin, <b id="dash-email"></b></p>
+    <div class="divider"></div>
     <div id="license-area"></div>
 
     <div id="buy-section">
-      <h3 style="margin-bottom:6px">Premium Satın Al</h3>
-      <p class="muted small">Ödeme bilgileri (fatura için).</p>
+      <h3 style="margin:0 0 6px">Premium Satın Al</h3>
+      <p class="muted small">Fatura/iletişim bilgileri. Ödeme iyzico ile güvenle alınır.</p>
       <div class="buyer-grid">
-        <input id="b-name" placeholder="Ad" />
-        <input id="b-surname" placeholder="Soyad" />
-        <input id="b-gsm" placeholder="Telefon (+90...)" />
-        <input id="b-id" placeholder="TC Kimlik No" inputmode="numeric" />
-        <input id="b-city" placeholder="Şehir" />
-        <input id="b-address" placeholder="Adres" />
+        <input id="b-name" class="field" placeholder="Ad" />
+        <input id="b-surname" class="field" placeholder="Soyad" />
+        <input id="b-gsm" class="field" placeholder="Telefon (+90...)" />
+        <input id="b-id" class="field" placeholder="TC Kimlik No" inputmode="numeric" />
+        <input id="b-city" class="field" placeholder="Şehir" />
+        <input id="b-address" class="field" placeholder="Adres" />
       </div>
       <button id="buy" class="btn gold full">Ödemeye Geç</button>
-      <p id="buy-status" class="muted"></p>
+      <p id="buy-status" class="muted small"></p>
     </div>
 
     <div id="pay-area"></div>
@@ -78,8 +83,7 @@ $('logout').onclick = async () => { await api('/api/logout', {}); showAuth(); };
 function renderLicense(me) {
   const area = $('license-area');
   if (me.license) {
-    area.innerHTML = '<div class="lic"><div class="muted">Lisans anahtarın</div><textarea readonly id="lic-key">'+me.license+'</textarea>'+
-      '<button class="btn ghost full" id="copy-lic">Kopyala</button></div>';
+    area.innerHTML = '<span class="badge">PREMIUM AKTİF</span><div class="lic" style="margin-top:10px"><div class="muted small">Lisans anahtarın</div><textarea readonly id="lic-key">'+me.license+'</textarea><button class="btn full" id="copy-lic" style="margin-top:8px">Kopyala</button></div>';
     $('copy-lic').onclick = () => { const t=$('lic-key'); t.select(); document.execCommand('copy'); $('copy-lic').textContent='Kopyalandı ✓'; };
     $('buy-section').classList.add('hidden');
   } else {
@@ -104,7 +108,7 @@ $('buy').onclick = async () => {
     const area = $('pay-area'); area.innerHTML='';
     if (r.paymentPageUrl) { location.href = r.paymentPageUrl; return; }
     const iframe = document.createElement('iframe');
-    iframe.style.cssText='width:100%;height:640px;border:0;margin-top:8px;border-radius:12px;background:#fff';
+    iframe.style.cssText='width:100%;height:660px;border:0;margin-top:10px;border-radius:14px;background:#fff';
     area.appendChild(iframe);
     const d = iframe.contentWindow.document; d.open(); d.write(r.checkoutFormContent || ''); d.close();
   } else {
@@ -113,8 +117,8 @@ $('buy').onclick = async () => {
 };
 
 const q = new URLSearchParams(location.search);
-if (q.get('paid') === '1') setTimeout(()=>{ alert('Ödeme başarılı! Lisansın hesabına eklendi.'); }, 500);
-if (q.get('paid') === '0') setTimeout(()=>{ alert('Ödeme tamamlanamadı. Tekrar dene.'); }, 500);
+if (q.get('paid') === '1') setTimeout(()=>{ alert('Ödeme başarılı! Lisansın hesabına eklendi.'); }, 400);
+if (q.get('paid') === '0') setTimeout(()=>{ alert('Ödeme tamamlanamadı. Tekrar dene.'); }, 400);
 loadMe();
 </script>
 </body>
