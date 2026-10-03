@@ -7,63 +7,49 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<div class="topline"></div>
 
 <header class="nav">
   <div class="brand"><span class="logo">H</span> Harley</div>
   <nav>
-    <a href="/">Anasayfa</a>
-    <a href="https://github.com/flewqiee/harley/releases/latest" target="_blank" rel="noreferrer">İndir</a>
-    <a href="#" id="logout" class="hidden">Çıkış</a>
+    <a class="nav-link" href="/">Anasayfa</a>
+    <a class="nav-link" href="https://github.com/flewqiee/harley/releases/latest" target="_blank" rel="noreferrer">İndir</a>
+    <a href="#" id="logout" class="btn ghost sm hidden">Çıkış</a>
   </nav>
 </header>
 
 <main class="auth-wrap">
-  <!-- Giriş / Kayıt -->
   <div id="auth-box" class="panel hidden">
     <h2>Hesabına gir</h2>
-    <p class="muted small">Lisansını yönet ve premium'a yükselt.</p>
+    <p class="muted small">Premium yakında. Hesabını şimdiden oluştur.</p>
     <div class="tabs">
       <button id="tab-login" class="tab active">Giriş</button>
       <button id="tab-register" class="tab">Kayıt Ol</button>
     </div>
     <input id="email" class="field" type="email" placeholder="E-posta" autocomplete="email" />
     <input id="password" class="field" type="password" placeholder="Şifre (en az 8 karakter)" autocomplete="current-password" />
-    <button id="submit" class="btn gold full" style="margin-top:8px">Giriş</button>
+    <button id="submit" class="btn primary full" style="margin-top:8px">Giriş</button>
     <p id="auth-status" class="muted small"></p>
   </div>
 
-  <!-- Hesabım -->
   <div id="dash-box" class="panel hidden">
     <h2>Hesabım</h2>
     <p class="muted">Hoş geldin, <b id="dash-email"></b></p>
     <div class="divider"></div>
     <div id="license-area"></div>
-
-    <div id="buy-section">
-      <h3 style="margin:0 0 6px">Premium Satın Al</h3>
-      <p class="muted small">Fatura/iletişim bilgileri. Ödeme iyzico ile güvenle alınır.</p>
-      <div class="buyer-grid">
-        <input id="b-name" class="field" placeholder="Ad" />
-        <input id="b-surname" class="field" placeholder="Soyad" />
-        <input id="b-gsm" class="field" placeholder="Telefon (+90...)" />
-        <input id="b-id" class="field" placeholder="TC Kimlik No" inputmode="numeric" />
-        <input id="b-city" class="field" placeholder="Şehir" />
-        <input id="b-address" class="field" placeholder="Adres" />
-      </div>
-      <button id="buy" class="btn gold full">Ödemeye Geç</button>
-      <p id="buy-status" class="muted small"></p>
+    <div class="notice" style="margin-top:14px">
+      <b>Premium çok yakında.</b>
+      <p class="muted small" style="margin:6px 0 12px">Görsel analiz, belge analizi, ekran analizi ve altın tema üzerinde çalışıyoruz. Hazır olduğunda buradan yükseltebilirsin.</p>
+      <a class="btn gold full" href="https://donate.bynogame.com/flewqiee" target="_blank" rel="noreferrer">Geliştirmeyi Destek Ol</a>
     </div>
-
-    <div id="pay-area"></div>
-    <p class="muted small">Ödeme sonrası lisans anahtarın hesabında ve e-postanda olur. Harley → Ayarlar → Premium → "Lisansı etkinleştir".</p>
   </div>
 </main>
 
 <script>
 const $ = (id) => document.getElementById(id);
 let mode = 'login';
-function showAuth() { $('auth-box').classList.remove('hidden'); $('dash-box').classList.add('hidden'); $('logout').classList.add('hidden'); }
-function showDash() { $('auth-box').classList.add('hidden'); $('dash-box').classList.remove('hidden'); $('logout').classList.remove('hidden'); }
+function showAuth(){ $('auth-box').classList.remove('hidden'); $('dash-box').classList.add('hidden'); $('logout').classList.add('hidden'); }
+function showDash(){ $('auth-box').classList.add('hidden'); $('dash-box').classList.remove('hidden'); $('logout').classList.remove('hidden'); }
 
 $('tab-login').onclick = () => { mode='login'; $('tab-login').classList.add('active'); $('tab-register').classList.remove('active'); $('submit').textContent='Giriş'; };
 $('tab-register').onclick = () => { mode='register'; $('tab-register').classList.add('active'); $('tab-login').classList.remove('active'); $('submit').textContent='Kayıt Ol'; };
@@ -85,10 +71,8 @@ function renderLicense(me) {
   if (me.license) {
     area.innerHTML = '<span class="badge">PREMIUM AKTİF</span><div class="lic" style="margin-top:10px"><div class="muted small">Lisans anahtarın</div><textarea readonly id="lic-key">'+me.license+'</textarea><button class="btn full" id="copy-lic" style="margin-top:8px">Kopyala</button></div>';
     $('copy-lic').onclick = () => { const t=$('lic-key'); t.select(); document.execCommand('copy'); $('copy-lic').textContent='Kopyalandı ✓'; };
-    $('buy-section').classList.add('hidden');
   } else {
     area.innerHTML = '<p class="muted">Henüz premium yok.</p>';
-    $('buy-section').classList.remove('hidden');
   }
 }
 async function loadMe() {
@@ -98,27 +82,6 @@ async function loadMe() {
   $('dash-email').textContent = me.email;
   renderLicense(me);
 }
-$('buy').onclick = async () => {
-  const buyer = { name:$('b-name').value.trim(), surname:$('b-surname').value.trim(), gsm:$('b-gsm').value.trim(), identityNumber:$('b-id').value.trim(), city:$('b-city').value.trim(), address:$('b-address').value.trim() };
-  $('buy-status').textContent='Ödeme başlatılıyor…';
-  const r = await api('/api/checkout', buyer);
-  if (!r.ok) { $('buy-status').textContent = r.message || 'Hata'; return; }
-  if (r.provider === 'iyzico') {
-    $('buy-status').textContent='Ödeme formu hazır.';
-    const area = $('pay-area'); area.innerHTML='';
-    if (r.paymentPageUrl) { location.href = r.paymentPageUrl; return; }
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText='width:100%;height:660px;border:0;margin-top:10px;border-radius:14px;background:#fff';
-    area.appendChild(iframe);
-    const d = iframe.contentWindow.document; d.open(); d.write(r.checkoutFormContent || ''); d.close();
-  } else {
-    $('buy-status').textContent = 'Sipariş #'+r.orderId+' oluşturuldu. (Ödeme sağlayıcı yapılandırılınca otomatik lisans verilecek.)';
-  }
-};
-
-const q = new URLSearchParams(location.search);
-if (q.get('paid') === '1') setTimeout(()=>{ alert('Ödeme başarılı! Lisansın hesabına eklendi.'); }, 400);
-if (q.get('paid') === '0') setTimeout(()=>{ alert('Ödeme tamamlanamadı. Tekrar dene.'); }, 400);
 loadMe();
 </script>
 </body>
