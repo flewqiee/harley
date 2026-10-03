@@ -525,18 +525,20 @@ async function maybeShowSetup() {
 // ---------- Kullanıcı rehberi (onboarding) ----------
 // İlk açılışta bir kez gösterilir; localStorage'da "onboarded" işareti tutulur.
 const ONBOARD_STEPS = [
-  { title: 'Harley\'ye hoş geldin!', icon: 'game', body: 'Ben senin kişisel AI asistanınım. Sohbet edebilir, projelerini geliştirebilir ve GitHub\'a gönderebilirim.<br><br><b>Başlamak için:</b> Sağ alttaki <b>Gönder</b> kutusuna bir şey yaz — mesela "Merhaba Harley!"' },
-  { title: 'Çalışma Alanı', icon: 'folder', body: 'Bir proje klasörü seçtiğinde o klasörde <b>tam yetki</b> kazanırım: dosya okuyabilir, yazabilir, komut çalıştırabilir, test edebilirim.<br><br>Footer\'daki <b>0/1</b> butonuna basarak klasör bağlarsın.' },
-  { title: 'GitHub Senkronu', icon: 'refresh', body: 'Bağlı klasörünü GitHub\'da repo yapabilir veya mevcut bir repoya bağlayabilirim.<br><br>"Repo oluştur", "Commit et", "Push et" dediğinde sana <b>onay sorarım</b> — sen "Evet" demezsen hiçbir şey göndermem.' },
-  { title: 'Hazır Sorular', icon: 'bulb', body: 'Alt taraftaki butonlarla hızlı başlayabilirsin: İş/Proje, Proje/Git, Eğlence.<br><br>Bir prompta tıklayınca yazı kutusuna dolar, sen Enter\'a basarsın.' },
-  { title: 'Senin Güvenliğin', icon: 'lock', body: 'Tokenların asla sohbetten geçmez, GitHub yazma işlemleri hep onayınla olur. İstediğin zaman "Tümünü Kapat" butonuyla Harley ve yardımcı programları kapatabilirsin.' },
+  { title: 'Harley\'ye hoş geldin!', icon: 'game', body: 'Ben bilgisayarında yaşayan kişisel asistanınım. Sohbet eder, yazar, araştırır, proje geliştirir ve günlük işlerini senin yerine yaparım.<br><br><b>Başlamak için:</b> Alttaki kutuya doğal dille yaz — mesela <b>"Merhaba Harley!"</b>' },
+  { title: 'Neler yapabilirim?', icon: 'bulb', body: 'Kısaca söyle, ben halledeyim: 📅 Takvimine etkinlik eklerim · ✉️ E-postalarını özetlerim · 🎵 Şarkı açarım · ⏰ Hatırlatırım · 📁 Dosyalarını düzenlerim · 💻 Kod yazar ve projeni geliştiririm.' },
+  { title: 'Kod bilmiyor musun?', icon: 'sparkle', body: 'Sorun değil! Programlama bilmene gerek yok. Günlük dille konuşursun, ben anlarım.<br><br>Örn: <b>"Bu klasördeki resimleri Resimler\'e taşı"</b> ya da <b>"Günün özetini çıkar"</b> demen yeterli.' },
+  { title: 'Çalışma Alanı & GitHub', icon: 'git', body: 'Bir proje klasörü bağlarsan orada dosya okur/yazar, komut çalıştırır ve test ederim. İstersen GitHub\'a <b>repo oluşturur, commit ve push</b> yaparım.<br><br>Her yazma işlemi <b>önce onayını ister</b> — sen "Evet" demezsen hiçbir şey gönderilmez.' },
+  { title: 'Roblox & Premium', icon: 'zap', body: 'Roblox Studio geliştiricileri için kod yazıp çalıştırabilirim.<br><br><b>Premium</b> ile ayrıca görselleri, <b>PDF/Word/Excel belgelerini</b> ve <b>ekranını</b> analiz eder, altın temayı açarım.' },
+  { title: 'Gizliliğin güvende', icon: 'lock', body: 'Anahtarların ve verilerin yalnızca <b>bu bilgisayarda</b> kalır; işletim sistemi şifrelemesiyle korunur. Sohbetler Harley sunucusuna gitmez.<br><br>İstediğin an "Tümünü Kapat" ile beni ve yardımcı programları kapatabilirsin.' },
 ];
 const ONBOARD_STEPS_EN = [
-  { title: 'Welcome to Harley!', icon: 'game', body: 'I am your personal AI assistant. I can chat, build your projects and push them to GitHub.<br><br><b>To start:</b> type something in the <b>Send</b> box at the bottom — try "Hello Harley!"' },
-  { title: 'Workspace', icon: 'folder', body: 'When you pick a project folder I get <b>full access</b> there: I can read/write files, run commands and tests.<br><br>Click the <b>0/1</b> button in the footer to bind a folder.' },
-  { title: 'GitHub Sync', icon: 'refresh', body: 'I can turn your bound folder into a GitHub repo or link it to an existing one.<br><br>When you say "Create repo", "Commit", "Push", I <b>ask for your approval</b> — nothing is sent unless you say yes.' },
-  { title: 'Quick Prompts', icon: 'bulb', body: 'Use the buttons at the bottom to start fast: Work/Project, Project/Git, Fun.<br><br>Clicking a prompt fills the input box; you press Enter.' },
-  { title: 'Your Security', icon: 'lock', body: 'Your tokens never pass through chat, GitHub write actions always need your approval. You can shut down Harley and helper programs anytime with "Shut down".' },
+  { title: 'Welcome to Harley!', icon: 'game', body: 'I am the personal assistant that lives on your computer. I chat, write, research, build projects and take care of everyday tasks for you.<br><br><b>To start:</b> type in plain language in the box below — try <b>"Hello Harley!"</b>' },
+  { title: 'What can I do?', icon: 'bulb', body: 'Just ask and I handle it: 📅 add calendar events · ✉️ summarize emails · 🎵 play music · ⏰ set reminders · 📁 organize files · 💻 write code and build your project.' },
+  { title: 'Not a coder?', icon: 'sparkle', body: 'No problem! You do not need to know programming. Talk in everyday language and I understand.<br><br>E.g. <b>"Move the images in this folder to Pictures"</b> or <b>"Give me my daily brief"</b>.' },
+  { title: 'Workspace & GitHub', icon: 'git', body: 'Bind a project folder and I can read/write files, run commands and tests there. I can also <b>create a repo, commit and push</b> to GitHub.<br><br>Every write action <b>asks for your approval first</b> — nothing is sent unless you say yes.' },
+  { title: 'Roblox & Premium', icon: 'zap', body: 'For Roblox Studio developers I can write and run code.<br><br>With <b>Premium</b> I also analyze images, <b>PDF/Word/Excel documents</b> and your <b>screen</b>, and unlock the gold theme.' },
+  { title: 'Your privacy is safe', icon: 'lock', body: 'Your keys and data stay only on <b>this computer</b>, protected by OS encryption. Chats never go through a Harley server.<br><br>You can shut me and helper programs down anytime with "Shut down".' },
 ];
 function maybeShowOnboarding() {
   const overlay = $('onboard-overlay');
@@ -552,7 +554,9 @@ function maybeShowOnboarding() {
   const STEPS = (LANG === 'en' && ONBOARD_STEPS_EN) ? ONBOARD_STEPS_EN : ONBOARD_STEPS;
   const render = () => {
     const s = STEPS[step];
-    title.innerHTML = (s.icon ? svgIcon(s.icon, 22) : '') + ' ' + s.title;
+    const logoEl = $('onboard-logo');
+    if (logoEl) logoEl.innerHTML = s.icon ? svgIcon(s.icon, 20) : '';
+    title.textContent = s.title;
     body.innerHTML = s.body;
     dots.innerHTML = STEPS.map((_, i) => '<span class="onboard-dot' + (i === step ? ' active' : '') + '"></span>').join('');
     prev.disabled = step === 0;
@@ -930,17 +934,26 @@ function showSkeleton(count) {
 // ---------- Empty State ----------
 function showEmptyState() {
   messagesEl.innerHTML = '';
+  const isEn = (typeof LANG !== 'undefined' && LANG === 'en');
   const el = document.createElement('div');
   el.className = 'empty-state';
-  el.innerHTML = '<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.9 5.2L19 10l-5.1 1.8L12 17l-1.9-5.2L5 10l5.1-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>' +
-    '<h3>Merhaba! Ben Harley</h3>' +
-    '<p>Senin kişisel asistanın. Ne yapmak istersen sor, yardımcı olayım.</p>' +
-    '<div class="empty-actions">' +
-    '<button onclick="sendQuick(\'Günün özetini çıkar\')">Günün Özeti</button>' +
-    '<button onclick="sendQuick(\'Roblox oyun öner\')">Oyun Öner</button>' +
-    '<button onclick="sendQuick(\'Hava durumunu söyle\')">Hava Durumu</button>' +
-    '<button onclick="sendQuick(\'Kod inceleme yap\')">Kod İncele</button>' +
-    '</div>';
+  el.innerHTML =
+    '<img class="empty-logo" src="assets/icon.png" alt="" />' +
+    '<h3>' + (isEn ? "Hi! I'm Harley" : 'Merhaba! Ben Harley') + '</h3>' +
+    '<p>' + (isEn
+      ? 'Your personal assistant. Ask me anything — I can handle tasks on your computer too.'
+      : 'Senin kişisel asistanın. Her şeyi sorabilirsin — bilgisayarındaki işlerini de hallederim.') + '</p>' +
+    '<div class="empty-actions"></div>';
+  const chips = isEn
+    ? [['Daily brief', 'Give me my daily brief'], ['What can you do?', 'Briefly list what you can do'], ['Play music', 'Play some music'], ['Organize files', 'Help me organize a folder'], ['Write code', 'Help me start a small project']]
+    : [['Günün Özeti', 'Günün özetini çıkar'], ['Neler yapabilirsin?', 'Neler yapabildiğini kısaca anlat'], ['Müzik çal', 'Biraz müzik çal'], ['Dosya düzenle', 'Bir klasörümü düzenlemene yardım et'], ['Kod yaz', 'Küçük bir projeye başlamama yardım et']];
+  const wrap = el.querySelector('.empty-actions');
+  chips.forEach(function (pair) {
+    const b = document.createElement('button');
+    b.textContent = pair[0];
+    b.addEventListener('click', function () { sendQuick(pair[1]); });
+    wrap.appendChild(b);
+  });
   messagesEl.appendChild(el);
 }
 

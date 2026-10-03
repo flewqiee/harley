@@ -1211,22 +1211,30 @@ footer { position: relative; }
 }
 #onboard-overlay.hidden { display: none; }
 .onboard-box {
+  position: relative;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 20px;
   box-shadow: var(--shadow-lg);
-  padding: 26px;
-  max-width: 460px;
+  padding: 32px 30px 24px;
+  max-width: 540px;
   width: 92%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
+  overflow: hidden;
   animation: pop-in 0.2s ease;
 }
-.onboard-head { display: flex; align-items: center; gap: 10px; }
-.onboard-logo { font-size: 26px; }
-.onboard-head h2 { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0; }
-.onboard-body { font-size: 13px; color: var(--ink-soft); line-height: 1.6; min-height: 90px; }
+.onboard-box::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--gold, var(--accent-2)));
+}
+.onboard-head { display: flex; align-items: center; gap: 12px; }
+.onboard-logo { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 11px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.onboard-head h2 { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0; }
+.onboard-body { font-size: 14.5px; color: var(--ink-soft); line-height: 1.75; min-height: 130px; }
 .onboard-dots { display: flex; gap: 6px; justify-content: center; }
 .onboard-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: all 0.2s; }
 .onboard-dot.active { background: var(--accent); width: 18px; border-radius: 4px; }
@@ -2121,18 +2129,30 @@ button:active:not(:disabled), .hub-quick-btn:active, .bag-item:active, .session-
   margin-bottom: 16px;
   opacity: 0.6;
 }
+.empty-state .empty-logo {
+  width: 66px;
+  height: 66px;
+  border-radius: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  animation: emptyPop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+@keyframes emptyPop {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
 .empty-state h3 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   margin: 0 0 6px;
-  color: var(--ink-soft);
+  color: var(--ink);
 }
 .empty-state p {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
-  margin: 0 0 16px;
-  max-width: 280px;
-  line-height: 1.5;
+  margin: 0 0 18px;
+  max-width: 360px;
+  line-height: 1.6;
 }
 .empty-state .empty-actions {
   display: flex;
@@ -2141,13 +2161,17 @@ button:active:not(:disabled), .hub-quick-btn:active, .bag-item:active, .session-
   justify-content: center;
 }
 .empty-state .empty-actions button {
-  font-size: 11px;
-  padding: 6px 12px;
-  border-radius: 16px;
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: 18px;
   background: var(--canvas);
   border: 1px solid var(--line);
   color: var(--ink-soft);
   cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.empty-state .empty-actions button:hover {
+  transform: translateY(-1px);
 }
 .empty-state .empty-actions button:hover {
   border-color: var(--accent);
@@ -3037,7 +3061,7 @@ html[data-theme="premium"] body { background: radial-gradient(1200px 600px at 80
 
 
 /* ============================================================
-   Faz 5 — Genel gorsel cila (overrides)
+   Faz 5 ï¿½ Genel gorsel cila (overrides)
    ============================================================ */
 :root { --app-radius: 14px; --app-radius-lg: 18px; }
 
@@ -3079,7 +3103,7 @@ input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 3px var(--accent-s
 ::selection { background: var(--accent-softer); }
 
 /* ============================================================
-   Faz 5 — Glassmorphism temasi (overrides)
+   Faz 5 ï¿½ Glassmorphism temasi (overrides)
    Not: GPU kapali oldugu icin blur yalnizca menu/panel yuzeylerinde;
    kartlar/govdeler yari saydam (blursuz) tutuldu (performans).
    ============================================================ */
@@ -3126,7 +3150,7 @@ header, #sidebar, footer {
   border-color: var(--glass-brd) !important;
 }
 
-/* Paneller (acilip kapanan modaller) — cam */
+/* Paneller (acilip kapanan modaller) ï¿½ cam */
 .settings-panel, .memory-panel, .clipboard-panel, .focus-panel, .evolution-panel {
   background: var(--glass) !important;
   -webkit-backdrop-filter: blur(18px) saturate(150%);
@@ -3135,7 +3159,7 @@ header, #sidebar, footer {
   box-shadow: var(--glass-shadow) !important;
 }
 
-/* Kartlar — yari saydam, blursuz (performans) */
+/* Kartlar ï¿½ yari saydam, blursuz (performans) */
 .hub-card {
   background: var(--glass) !important;
   border: 1px solid var(--glass-brd) !important;
@@ -3146,7 +3170,7 @@ header, #sidebar, footer {
 
 .conn-card { background: var(--glass) !important; border: 1px solid var(--glass-brd) !important; }
 
-/* Asistan balonu — camimsi */
+/* Asistan balonu ï¿½ camimsi */
 .msg.assistant {
   background: var(--glass) !important;
   border: 1px solid var(--glass-brd) !important;
